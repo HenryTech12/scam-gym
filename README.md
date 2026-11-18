@@ -32,6 +32,21 @@ uvicorn backend.main:app --reload --port 8000
 
 **Offline:** after the first load, the service worker caches the app and the scenarios, so drills keep working with no network.
 
+## Deploy (Render)
+
+`render.yaml` is a Render Blueprint for one web service in Frankfurt (the closest Render region to Nigeria). It has a 1 GB persistent disk at `/var/data` for the study database.
+
+1. In the Render dashboard, choose **New → Blueprint** and connect this GitHub repository.
+2. Review the plan and apply. Render runs `pip install -r requirements.txt` and starts uvicorn, and checks `/api/health`.
+3. Open the `onrender.com` URL. Render provides HTTPS, which the microphone and offline mode need.
+
+Notes:
+- **Plan.** The persistent disk needs a paid plan (Starter). On the free plan, the service sleeps when idle (slow first load) and study results are lost on every restart or deploy. The drills still work.
+- **Deploys.** With a disk attached, Render runs a single instance and each deploy has a short downtime. Pushing to the deploy branch redeploys automatically.
+- **Privacy.** `--proxy-headers` lets the rate limit see each visitor's IP, held in memory only. `--no-access-log` keeps visitor IPs and paths out of the app's logs. HSTS is sent over HTTPS.
+- **Optional rephrasing.** It stays off. To turn it on, set `LLM_ENABLED=true`, `LLM_PROVIDER=anthropic` and `LLM_API_KEY` (as a secret) in the Render dashboard, and add `anthropic` to `requirements.txt`.
+- **Export study results.** Open the service's Shell in Render and run `python scripts/export_study_csv.py --db /var/data/study.db --out /var/data/study_export.csv`.
+
 ## Languages
 
 English (`en`), Spanish (`es`) and French (`fr`) cover everything: UI text, caller lines, replies, voice in and out, the debrief, the family code word message, the study and the About page.

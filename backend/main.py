@@ -90,6 +90,8 @@ def create_app(settings: Settings | None = None, generator: Generator | None = N
                 return response
         response = await call_next(request)
         response.headers.update(SECURITY_HEADERS)
+        if request.url.scheme == "https":  # set by --proxy-headers behind Render's TLS proxy
+            response.headers["Strict-Transport-Security"] = "max-age=31536000"
         if request.url.path in NO_CACHE_PATHS:
             response.headers["Cache-Control"] = "no-cache"
         if request.url.path.startswith("/api/"):

@@ -1,0 +1,25 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Creates one web service with a small persistent disk for the study's SQLite file.
+services:
+  - type: web
+    name: scam-gym
+    runtime: python
+    plan: starter            # persistent disks need a paid plan; the free plan loses study data on restart
+    region: frankfurt        # closest Render region to Nigeria
+    buildCommand: pip install -r requirements.txt
+    # --proxy-headers: rate-limit by the visitor's IP (from Render's proxy), held in memory only.
+    # --no-access-log: the app writes no visitor IPs or paths to the server logs.
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*" --no-access-log
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_PATH
+        value: /var/data/study.db
+      - key: LLM_ENABLED
+        value: "false"
+    disk:
+      name: study-data
+      mountPath: /var/data
+      sizeGB: 1
