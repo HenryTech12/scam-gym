@@ -1,6 +1,6 @@
 // Builds the debrief from a finished run. Pure, no DOM.
 
-export function buildDebrief(state, glossary) {
+export function buildDebrief(state, glossary, endedCallLabel = "Ended the call") {
   const scenario = state.scenario;
   const end = scenario.ends[state.endId];
   const tactics = [...state.tacticsSeen].map((id) => ({
@@ -13,7 +13,7 @@ export function buildDebrief(state, glossary) {
     const node = scenario.nodes[step.nodeId];
     const choice = node.choices.find((c) => c.id === step.choiceId);
     return {
-      label: choice ? choice.label : "Ended the call",
+      label: choice ? choice.label : endedCallLabel,
       type: step.type,
       callerSaid: node.say,
     };

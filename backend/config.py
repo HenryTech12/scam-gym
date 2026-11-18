@@ -7,8 +7,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = ROOT / "frontend"
-SCENARIOS_PATH = FRONTEND_DIR / "data" / "scenarios.json"
-STUDY_ITEMS_PATH = FRONTEND_DIR / "data" / "study_items.json"
+LANGS = ("en", "es", "fr")
+SCENARIO_PATHS = {lang: FRONTEND_DIR / "data" / f"scenarios.{lang}.json" for lang in LANGS}
+STUDY_ITEMS_PATHS = {lang: FRONTEND_DIR / "data" / f"study_items.{lang}.json" for lang in LANGS}
 
 
 def load_dotenv(path: Path = ROOT / ".env") -> None:

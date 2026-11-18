@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 Answer = Literal["comply", "verify"]
 ItemSet = Literal["A", "B"]
+Lang = Literal["en", "es", "fr"]
 
 SCENARIO_ID = r"^[a-z0-9-]{1,40}$"
 NODE_ID = r"^[a-z0-9_]{1,20}$"
@@ -21,6 +22,7 @@ class Strict(BaseModel):
 class RephraseRequest(Strict):
     scenario_id: str = Field(pattern=SCENARIO_ID)
     node_id: str = Field(pattern=NODE_ID)
+    lang: Lang = "en"
 
 
 class RephraseResponse(BaseModel):
@@ -35,6 +37,8 @@ class StudyAnswer(Strict):
 
 class StudySession(Strict):
     participant_id: UUID
+    # Required by the current frontend; defaults to "en" only for older clients.
+    lang: Lang = "en"
     pre_set: ItemSet
     post_set: ItemSet
     pre: list[StudyAnswer] = Field(min_length=5, max_length=5)
@@ -83,4 +87,5 @@ class StudySummary(BaseModel):
     post_verify_rate: float
     change_points: int
     per_item: list[ItemRate]
+    by_lang: dict[str, int]
     label: str = "Small sample, self-reported"

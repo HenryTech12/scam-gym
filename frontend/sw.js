@@ -1,7 +1,10 @@
-// Service worker: caches the app shell and scenarios so drills work offline.
-// API calls are never cached; they always go to the network and fall back in the page.
+// Service worker: caches the app shell so drills work offline.
+// At install: the shell plus English (the fallback for any missing string).
+// The page then asks for its current language ("cache-lang"); any other language
+// is cached on first use by the fetch handler. API calls are never cached.
 
-const CACHE = "scam-gym-v1";
+const CACHE = "scam-gym-v2";
+const LANGS = ["en", "es", "fr"];
 const SHELL = [
   "./",
   "index.html",
@@ -9,21 +12,26 @@ const SHELL = [
   "css/styles.css",
   "js/app.js",
   "js/dom.js",
+  "js/i18n.js",
   "js/engine.js",
   "js/matcher.js",
   "js/voice.js",
   "js/debrief.js",
   "js/study.js",
   "js/api.js",
-  "data/scenarios.json",
-  "data/study_items.json",
   "icons/icon.svg",
   "icons/icon-192.png",
   "icons/icon-512.png",
 ];
+const langFiles = (lang) => [`i18n/${lang}.json`, `data/scenarios.${lang}.json`, `data/study_items.${lang}.json`];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.addAll([...SHELL, ...langFiles("en")]))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (event) => {
@@ -35,7 +43,13 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Stale-while-revalidate for same-origin GETs of the shell; network only for /api.
+self.addEventListener("message", (event) => {
+  const lang = event.data && event.data.type === "cache-lang" ? event.data.lang : null;
+  if (!LANGS.includes(lang)) return;
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(langFiles(lang))).catch(() => {}));
+});
+
+// Stale-while-revalidate for same-origin GETs; network only for /api.
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);

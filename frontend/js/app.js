@@ -1,9 +1,11 @@
-// Router and screen rendering. The whole drill runs locally from the bundled scenarios.json.
+// Router and screen rendering. The whole drill runs locally from the bundled
+// data/scenarios.<lang>.json; the backend is optional.
 
 import { h, icon, typeTag } from "./dom.js";
 import { createRun, getNode, choose, endCall, isEnd, pressure, DrillError } from "./engine.js";
 import { match } from "./matcher.js";
 import { buildDebrief } from "./debrief.js";
+import { t, setLang, getLang, detectLang, LANGS, LANG_NAMES } from "./i18n.js";
 import * as voice from "./voice.js";
 import * as api from "./api.js";
 import * as study from "./study.js";
@@ -12,12 +14,33 @@ const app = {
   data: null,
   voiceOn: false, // kept in memory only
   llmEnabled: false,
-  lastDebrief: null,
+  lastRun: null, // { scenarioId, history, endId, tacticsSeen } so the debrief can re-render in any language
+  inCall: false,
   cleanups: [],
 };
 
 const main = document.getElementById("app");
-const NOT_CAUGHT = "I did not catch that. Tap one of the options.";
+const dataCache = new Map();
+
+// ---------- data ----------
+
+async function loadScenarios(lang) {
+  if (!dataCache.has(lang)) {
+    dataCache.set(
+      lang,
+      fetch(`data/scenarios.${lang}.json`).then((r) => {
+        if (!r.ok) throw new Error(`scenarios ${lang}: ${r.status}`);
+        return r.json();
+      })
+    );
+  }
+  try {
+    return await dataCache.get(lang);
+  } catch (err) {
+    dataCache.delete(lang);
+    throw err;
+  }
+}
 
 // ---------- helpers ----------
 
@@ -66,12 +89,7 @@ function scenarioById(id) {
 }
 
 function safetyNotice() {
-  return h(
-    "p",
-    { class: "notice", role: "note" },
-    icon("shield"),
-    h("span", { text: "Everything here is fictional. Never type real names, numbers, codes or PINs. Nothing you do here is stored." })
-  );
+  return h("p", { class: "notice", role: "note" }, icon("shield"), h("span", { text: t("safety.notice") }));
 }
 
 function drillCards(onStart) {
@@ -84,28 +102,110 @@ function drillCards(onStart) {
         { class: "card" },
         h("h3", { text: s.title }),
         h("p", { text: s.blurb }),
-        h("button", { class: "btn btn-primary", type: "button", onclick: () => onStart(s.id), "aria-label": `Start the call: ${s.title}` }, "Start the call")
+        h("button", { class: "btn btn-primary", type: "button", onclick: () => onStart(s.id), "aria-label": t("home.startAria", { title: s.title }) }, t("home.start"))
       )
     )
   );
+}
+
+// ---------- language ----------
+
+function langSelector(variant) {
+  const current = getLang();
+  return h(
+    "div",
+    { class: `lang-select lang-${variant}`, role: "group", "aria-label": t("lang.label") },
+    LANGS.map((code) =>
+      h(
+        "button",
+        {
+          type: "button",
+          class: "lang-btn",
+          lang: code,
+          "data-lang": code,
+          "data-variant": variant,
+          "aria-pressed": String(code === current),
+          onclick: () => changeLang(code, variant),
+        },
+        // The header shows short codes to save space; screen readers also hear the full name.
+        variant === "header" ? [code.toUpperCase(), h("span", { class: "visually-hidden", text: ` ${LANG_NAMES[code]}` })] : LANG_NAMES[code]
+      )
+    )
+  );
+}
+
+function announce(text) {
+  const el = document.getElementById("announcer");
+  if (!el) return;
+  el.textContent = "";
+  setTimeout(() => {
+    el.textContent = text;
+  }, 50);
+}
+
+function cacheLangOffline(lang) {
+  navigator.serviceWorker?.ready
+    .then((reg) => reg.active?.postMessage({ type: "cache-lang", lang }))
+    .catch(() => {});
+}
+
+async function changeLang(code, variant) {
+  if (app.inCall || code === getLang()) return;
+  let data;
+  try {
+    data = await loadScenarios(code);
+  } catch {
+    return; // stay in the current language if the pack cannot load (offline and never opened)
+  }
+  await setLang(code);
+  app.data = data;
+  try {
+    const url = new URL(location.href);
+    url.searchParams.set("lang", code);
+    history.replaceState(null, "", url);
+  } catch {
+    /* ignore */
+  }
+  cacheLangOffline(code);
+  route();
+  announce(t("lang.changed"));
+  requestAnimationFrame(() => document.querySelector(`.lang-btn[data-variant="${variant}"][data-lang="${code}"]`)?.focus());
+}
+
+function renderChrome() {
+  document.querySelector('meta[name="description"]')?.setAttribute("content", t("meta.description"));
+  const set = (sel, key) => {
+    const el = document.querySelector(sel);
+    if (el) el.textContent = t(key);
+  };
+  set(".skip-link", "skip");
+  set('[data-i18n="nav.drills"]', "nav.drills");
+  set('[data-i18n="nav.code"]', "nav.code");
+  set('[data-i18n="nav.about"]', "nav.about");
+  set(".site-footer p", "footer");
+  document.querySelector(".site-header nav")?.setAttribute("aria-label", t("nav.label"));
+  const slot = document.getElementById("lang-header");
+  // Language switching is hidden during a call to avoid a state mismatch.
+  if (slot) slot.replaceChildren(app.inCall ? "" : langSelector("header"));
 }
 
 // ---------- Home ----------
 
 function renderHome() {
   const heading = screen(
-    "Practice the scam call before it happens.",
-    h("p", { class: "lead", text: "Take a short, fictional scam call. Reply by tapping or by voice. Then see each pressure trick the caller used, and the safer reply." }),
+    t("home.title"),
+    h("p", { class: "lead", text: t("home.lead") }),
+    langSelector("home"),
     safetyNotice(),
     voiceToggle(),
-    h("h2", { text: "Choose a drill" }),
+    h("h2", { text: t("home.chooseDrill") }),
     drillCards((id) => navigate(`#/drill/${id}`)),
     h(
       "ul",
       { class: "links", role: "list" },
-      h("li", {}, h("a", { href: "#/about" }, "How this works")),
-      h("li", {}, h("a", { href: "#/study" }, "Take the before-and-after study")),
-      h("li", {}, h("a", { href: "#/family-code" }, "Set a family code word"))
+      h("li", {}, h("a", { href: "#/about" }, t("home.how"))),
+      h("li", {}, h("a", { href: "#/study" }, t("home.study"))),
+      h("li", {}, h("a", { href: "#/family-code" }, t("home.familyCode")))
     )
   );
   focusHeading(heading);
@@ -126,12 +226,8 @@ function voiceToggle() {
   return h(
     "div",
     { class: "toggle" },
-    h("div", { class: "toggle-row" }, input, h("label", { for: id, text: "Use voice (optional)" })),
-    h("p", {
-      id: "voice-note",
-      class: "small",
-      text: "Voice uses your browser's speech feature. Some browsers send speech to their provider to convert it to text. Turn voice off to avoid this. Nothing is recorded or stored by Scam Gym.",
-    })
+    h("div", { class: "toggle-row" }, input, h("label", { for: id, text: t("voice.toggle") })),
+    h("p", { id: "voice-note", class: "small", text: t("voice.note") })
   );
 }
 
@@ -140,15 +236,21 @@ function voiceToggle() {
 function renderDrill(id) {
   const scenario = scenarioById(id);
   if (!scenario) {
-    const heading = screen("Drill not found", h("p", { text: "That drill does not exist." }), h("a", { href: "#/", class: "btn" }, "Back to drills"));
+    const heading = screen(t("drill.notFound"), h("p", { text: t("drill.notFoundBody") }), h("a", { href: "#/", class: "btn" }, t("common.backToDrills")));
     return focusHeading(heading);
   }
 
+  const lang = getLang();
   let state = createRun(app.data, id);
   let token = 0; // guards async work from a previous line
   const started = Date.now();
+  app.inCall = true;
+  onCleanup(() => {
+    app.inCall = false;
+  });
+  renderChrome();
 
-  const timer = h("span", { class: "timer", role: "timer", "aria-label": "Call time", text: "00:00" });
+  const timer = h("span", { class: "timer", role: "timer", "aria-label": t("call.time"), text: "00:00" });
   const tick = setInterval(() => {
     const s = Math.floor((Date.now() - started) / 1000);
     timer.textContent = `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -157,54 +259,67 @@ function renderDrill(id) {
 
   const meterSegs = [0, 1, 2, 3].map(() => h("span", { class: "seg" }));
   const meterText = h("span", { class: "meter-text" });
-  const meter = h("div", { class: "pressure" }, h("span", { class: "meter-label", text: "Pressure" }), h("span", { class: "segs", "aria-hidden": "true" }, meterSegs), meterText);
+  const meter = h(
+    "div",
+    { class: "pressure" },
+    h("span", { class: "meter-label", text: t("call.pressure") }),
+    h("span", { class: "segs", "aria-hidden": "true" }, meterSegs),
+    meterText
+  );
 
   const caption = h("p", { class: "caption-text", id: "caption", "aria-live": "polite" });
   const visualSlot = h("div");
-  const replyHeading = h("h2", { class: "reply-heading", tabindex: "-1", text: "Your reply" });
+  const replyHeading = h("h2", { class: "reply-heading", tabindex: "-1", id: "reply-heading", text: t("call.yourReply") });
   const replies = h("div", { class: "replies", role: "group", "aria-labelledby": "reply-heading" });
-  replyHeading.id = "reply-heading";
   const status = h("p", { class: "status", role: "status" });
+  const voiceNote = h("p", { class: "small voice-note" });
   const micSlot = h("div");
 
-  const endBtn = h(
-    "button",
-    { class: "btn btn-end", type: "button", onclick: () => finish(endCall(state)) },
-    icon("phoneOff"),
-    "End call"
-  );
+  const endBtn = h("button", { class: "btn btn-end", type: "button", onclick: () => finish(endCall(state)) }, icon("phoneOff"), t("call.endCall"));
 
-  const avatarText = scenario.caller.name.replace(/[^A-Za-z ]/g, "").split(" ").filter((w) => /^[A-Z]/.test(w)).map((w) => w[0]).slice(0, 2).join("");
+  const avatarText = scenario.caller.name
+    .replace(/[^\p{L} ]/gu, "")
+    .split(" ")
+    .filter((w) => /^\p{Lu}/u.test(w))
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("");
 
   document.title = `${scenario.title} · Scam Gym`;
   main.replaceChildren(
     h(
       "section",
-      { class: "call", "aria-label": "Simulated call" },
-      h("h1", { class: "visually-hidden", tabindex: "-1", id: "call-title", text: `Drill: ${scenario.title}` }),
+      { class: "call", "aria-label": t("call.aria") },
+      h("h1", { class: "visually-hidden", tabindex: "-1", id: "call-title", text: t("call.heading", { title: scenario.title }) }),
       h(
         "div",
         { class: "call-head" },
         h("div", { class: "avatar", "aria-hidden": "true", text: avatarText || "?" }),
         h("div", { class: "who" }, h("p", { class: "caller-name", text: scenario.caller.name }), h("p", { class: "caller-role", text: scenario.caller.role })),
-        h("div", { class: "call-meta" }, h("span", { class: "live-dot", "aria-hidden": "true" }), h("span", { class: "visually-hidden", text: "Simulated call in progress. " }), timer)
+        h("div", { class: "call-meta" }, h("span", { class: "live-dot", "aria-hidden": "true" }), h("span", { class: "visually-hidden", text: t("call.inProgress") }), timer)
       ),
       scenario.notice ? h("p", { class: "sim-label", text: scenario.notice }) : null,
       meter,
-      h("div", { class: "caption" }, h("p", { class: "caption-label", text: "Caller says" }), caption),
+      h("div", { class: "caption" }, h("p", { class: "caption-label", text: t("call.callerSays") }), caption),
+      voiceNote,
       visualSlot,
       replyHeading,
       replies,
       micSlot,
       status,
-      h("div", { class: "end-wrap" }, endBtn, h("p", { class: "small", text: "Ending a call is always allowed." }))
+      h("div", { class: "end-wrap" }, endBtn, h("p", { class: "small", text: t("call.endNote") }))
     )
   );
   focusHeading(document.getElementById("call-title"));
 
   function finish(endState) {
     runCleanups();
-    app.lastDebrief = buildDebrief(endState, app.data.tactics_glossary);
+    app.lastRun = {
+      scenarioId: endState.scenarioId,
+      history: endState.history,
+      endId: endState.endId,
+      tacticsSeen: [...endState.tacticsSeen],
+    };
     if (study.isActive()) study.recordDrill(endState.scenarioId);
     navigate("#/debrief");
   }
@@ -218,7 +333,7 @@ function renderDrill(id) {
       showNode(true);
     } catch (err) {
       // An invalid choice must never crash the UI.
-      status.textContent = err instanceof DrillError ? NOT_CAUGHT : "Something went wrong. Tap one of the options.";
+      status.textContent = err instanceof DrillError ? t("call.notCaught") : t("call.error");
     }
   }
 
@@ -227,13 +342,13 @@ function renderDrill(id) {
     const node = getNode(state);
     const level = pressure(state);
     meterSegs.forEach((s, i) => s.classList.toggle("on", i < level));
-    meterText.textContent = `${level} of 4`;
+    meterText.textContent = t("call.pressureOf", { n: level });
     status.textContent = "";
 
     let line = node.say;
     if (app.llmEnabled) {
       caption.classList.add("waiting");
-      const res = await api.rephrase(state.scenarioId, state.nodeId);
+      const res = await api.rephrase(state.scenarioId, state.nodeId, lang);
       if (my !== token) return;
       caption.classList.remove("waiting");
       if (res?.say) line = res.say;
@@ -241,33 +356,32 @@ function renderDrill(id) {
     caption.textContent = line;
 
     visualSlot.replaceChildren(node.visual ? smsCard(node.visual) : "");
-
-    replies.replaceChildren(
-      ...node.choices.map((c) => h("button", { class: "btn btn-reply", type: "button", onclick: () => pick(c.id) }, c.label))
-    );
+    replies.replaceChildren(...node.choices.map((c) => h("button", { class: "btn btn-reply", type: "button", onclick: () => pick(c.id) }, c.label)));
 
     micSlot.replaceChildren();
     if (app.voiceOn && voice.isSupported()) {
-      const mic = h("button", { class: "btn btn-mic", type: "button" }, icon("mic"), "Say your reply");
+      const mic = h("button", { class: "btn btn-mic", type: "button" }, icon("mic"), t("call.sayReply"));
       mic.addEventListener("click", async () => {
         mic.disabled = true;
-        status.textContent = "Listening. Speak now.";
-        const { transcript } = await voice.listen();
+        status.textContent = t("call.listening");
+        const { transcript } = await voice.listen(lang);
         if (my !== token) return;
         mic.disabled = false;
         if (!transcript) {
-          status.textContent = NOT_CAUGHT;
+          status.textContent = t("call.notCaught");
           return;
         }
-        const result = match(transcript, node.choices);
+        const result = match(transcript, node.choices, lang);
         if (!result) {
-          status.textContent = `You said: "${transcript}". ${NOT_CAUGHT}`;
+          status.textContent = `${t("call.youSaid", { text: transcript })} ${t("call.notCaught")}`;
           return;
         }
         pick(result.choiceId);
       });
       micSlot.append(mic);
-      voice.speak(line, scenario.caller.voice);
+      voice.speak(line, scenario.caller.voice, lang).then((spoken) => {
+        if (my === token && spoken === "no-voice") voiceNote.textContent = t("call.noVoice");
+      });
     }
 
     if (moveFocus) replyHeading.focus();
@@ -280,7 +394,7 @@ function smsCard(visual) {
   return h(
     "figure",
     { class: "sms" },
-    h("p", { class: "sms-from" }, icon("message", "icon icon-sm"), h("span", { text: `Message shown by the customer. From: ${visual.sender}` })),
+    h("p", { class: "sms-from" }, icon("message", "icon icon-sm"), h("span", { text: t("call.smsFrom", { sender: visual.sender }) })),
     h("blockquote", { class: "sms-body", text: visual.text }),
     h("figcaption", { class: "small", text: visual.note })
   );
@@ -289,135 +403,110 @@ function smsCard(visual) {
 // ---------- Debrief ----------
 
 function renderDebrief() {
-  const d = app.lastDebrief;
-  if (!d) {
-    const heading = screen("No call to review yet", h("p", { text: "Play a drill first. The debrief appears when the call ends." }), h("a", { href: "#/", class: "btn btn-primary" }, "Choose a drill"));
+  const run = app.lastRun;
+  const scenario = run && scenarioById(run.scenarioId);
+  if (!scenario) {
+    const heading = screen(t("debrief.noneTitle"), h("p", { text: t("debrief.noneBody") }), h("a", { href: "#/", class: "btn btn-primary" }, t("common.chooseDrill")));
     return focusHeading(heading);
   }
+  // Rebuilt from ids, so switching language on this screen shows the same debrief translated.
+  const d = buildDebrief({ ...run, scenario, tacticsSeen: new Set(run.tacticsSeen) }, app.data.tactics_glossary, t("debrief.endedCall"));
   const safe = d.result === "safe";
-  document.title = `Debrief · Scam Gym`;
+  const inStudy = study.isActive();
+  document.title = `${t("debrief.title", { title: d.title })} · Scam Gym`;
 
   const actions = h(
     "div",
     { class: "actions" },
-    study.isActive()
-      ? h("button", { class: "btn btn-primary", type: "button", onclick: () => navigate("#/study") }, `Back to the study (${study.drillsDone()} of 2 drills done)`)
-      : null,
-    h("button", { class: `btn ${study.isActive() ? "" : "btn-primary"}`, type: "button", onclick: () => navigate(`#/drill/${d.scenarioId}`) }, "Try again"),
-    h("button", { class: "btn", type: "button", onclick: () => navigate(study.isActive() ? "#/study" : "#/") }, "Try another drill"),
-    d.offerFamilyCode ? h("button", { class: "btn", type: "button", onclick: () => navigate("#/family-code") }, "Set a family code word") : null
+    inStudy ? h("button", { class: "btn btn-primary", type: "button", onclick: () => navigate("#/study") }, t("debrief.backToStudy", { n: study.drillsDone() })) : null,
+    h("button", { class: `btn ${inStudy ? "" : "btn-primary"}`, type: "button", onclick: () => navigate(`#/drill/${d.scenarioId}`) }, t("debrief.tryAgain")),
+    h("button", { class: "btn", type: "button", onclick: () => navigate(inStudy ? "#/study" : "#/") }, t("debrief.tryAnother")),
+    d.offerFamilyCode ? h("button", { class: "btn", type: "button", onclick: () => navigate("#/family-code") }, t("debrief.setCode")) : null
   );
 
-  const heading = h("h1", { tabindex: "-1", class: "visually-hidden", text: `Debrief: ${d.title}` });
+  const heading = h("h1", { tabindex: "-1", class: "visually-hidden", text: t("debrief.title", { title: d.title }) });
   main.replaceChildren(
     heading,
     h(
       "div",
       { class: `result result-${d.result}`, role: "status", "aria-live": "polite" },
       icon(safe ? "check" : "alert", "icon icon-lg"),
-      h("div", {}, h("p", { class: "result-kind", text: safe ? "Safe outcome" : "Money lost (in the drill)" }), h("p", { class: "result-headline", text: d.headline }))
+      h("div", {}, h("p", { class: "result-kind", text: safe ? t("debrief.safeKind") : t("debrief.lostKind") }), h("p", { class: "result-headline", text: d.headline }))
     ),
-    h("div", { class: "habit" }, h("p", { class: "habit-label", text: "The habit" }), h("p", { class: "habit-text", text: d.habit })),
-    h("h2", { text: "What the caller did" }),
+    h("div", { class: "habit" }, h("p", { class: "habit-label", text: t("debrief.habit") }), h("p", { class: "habit-text", text: d.habit })),
+    h("h2", { text: t("debrief.tacticsTitle") }),
     h(
       "ul",
       { class: "tactics", role: "list" },
-      d.tactics.map((t) =>
-        h(
-          "li",
-          { class: "tactic" },
-          h("h3", { text: t.name }),
-          h("p", { text: t.explanation }),
-          h("p", { class: "safer" }, h("strong", { text: "Safer reply: " }), t.safer)
-        )
+      d.tactics.map((tc) =>
+        h("li", { class: "tactic" }, h("h3", { text: tc.name }), h("p", { text: tc.explanation }), h("p", { class: "safer" }, h("strong", { text: `${t("debrief.saferReply")} ` }), tc.safer))
       )
     ),
-    h("h2", { text: "Your path" }),
-    h(
-      "ol",
-      { class: "path" },
-      d.path.map((p) => h("li", {}, typeTag(p.type), h("span", { text: p.label })))
-    ),
+    h("h2", { text: t("debrief.pathTitle") }),
+    h("ol", { class: "path" }, d.path.map((p) => h("li", {}, typeTag(p.type), h("span", { text: p.label })))),
     actions,
-    realLifeHelp()
-  );
-  focusHeading(heading);
-}
-
-function realLifeHelp() {
-  return h(
-    "details",
-    { class: "real" },
-    h("summary", { text: "If this happened for real" }),
     h(
-      "ul",
-      {},
-      h("li", { text: "Call your bank using the number on your card." }),
-      h("li", { text: "Do not send more money." }),
-      h("li", { text: "Keep screenshots of messages, numbers and account details." }),
-      h(
-        "li",
-        {},
-        "Report to the EFCC (",
-        h("a", { href: "https://www.efcc.gov.ng", rel: "noreferrer noopener", target: "_blank" }, "efcc.gov.ng"),
-        ") or the police."
-      )
+      "details",
+      { class: "real" },
+      h("summary", { text: t("real.title") }),
+      h("ul", {}, ["real.1", "real.2", "real.3", "real.4"].map((k) => h("li", { text: t(k) })))
     )
   );
+  focusHeading(heading);
 }
 
 // ---------- Family code word ----------
 
 function renderFamilyCode() {
   const input = h("input", { type: "text", id: "code-word", autocomplete: "off", spellcheck: "false", maxlength: "60" });
-  const preview = h("p", { class: "message-preview", "aria-live": "off" });
+  const preview = h("p", { class: "message-preview" });
   const feedback = h("p", { class: "status", role: "status" });
   const fallback = h("div");
 
-  const message = () => {
-    const word = input.value.trim();
-    return `Our family code word is ${word || "[word]"}. If anyone calls asking for money, ask for it. If they cannot say it, hang up and call me on my normal number.`;
-  };
+  const message = () => t("family.message", { word: input.value.trim() || t("family.placeholder") });
   const update = () => {
     preview.textContent = message();
   };
   input.addEventListener("input", update);
   update();
 
-  const copyBtn = h("button", {
-    class: "btn btn-primary",
-    type: "button",
-    onclick: async () => {
-      if (!input.value.trim()) {
-        feedback.textContent = "Type a word or phrase first.";
-        input.focus();
-        return;
-      }
-      fallback.replaceChildren();
-      try {
-        await navigator.clipboard.writeText(message());
-        feedback.textContent = "Copied. Paste it in a private message to each family member.";
-      } catch {
-        const area = h("textarea", { readonly: true, rows: "4", class: "copy-area", "aria-label": "Message to copy", text: message() });
-        fallback.append(area);
-        area.select();
-        feedback.textContent = "Copy did not work in this browser. Select the text below and copy it.";
-      }
+  const copyBtn = h(
+    "button",
+    {
+      class: "btn btn-primary",
+      type: "button",
+      onclick: async () => {
+        if (!input.value.trim()) {
+          feedback.textContent = t("family.typeFirst");
+          input.focus();
+          return;
+        }
+        fallback.replaceChildren();
+        try {
+          await navigator.clipboard.writeText(message());
+          feedback.textContent = t("family.copied");
+        } catch {
+          const area = h("textarea", { readonly: true, rows: "4", class: "copy-area", "aria-label": t("family.copyArea"), text: message() });
+          fallback.append(area);
+          area.select();
+          feedback.textContent = t("family.copyFailed");
+        }
+      },
     },
-  });
-  copyBtn.textContent = "Copy message for family";
+    t("family.copy")
+  );
 
   const heading = screen(
-    "Set a family code word",
-    h("p", { text: "A copied voice can sound exactly like someone you love. A code word is something a scammer cannot copy. Agree on it now, in person or on a normal call, before anyone needs it." }),
-    h("div", { class: "field" }, h("label", { for: "code-word", text: "Your family code word or phrase" }), input, h("p", { class: "small", text: "Kept on this screen only. It is never stored or sent anywhere." })),
-    h("h2", { text: "Message for your family" }),
+    t("family.title"),
+    h("p", { text: t("family.intro") }),
+    h("div", { class: "field" }, h("label", { for: "code-word", text: t("family.label") }), input, h("p", { class: "small", text: t("family.inputNote") })),
+    h("h2", { text: t("family.messageTitle") }),
     preview,
     copyBtn,
     feedback,
     fallback,
-    h("p", { class: "notice", role: "note" }, icon("shield"), h("span", { text: "Do not share the word in public groups or on social media. Send it privately, or say it in person." })),
-    h("a", { href: "#/", class: "btn" }, "Back to drills")
+    h("p", { class: "notice", role: "note" }, icon("shield"), h("span", { text: t("family.warning") })),
+    h("a", { href: "#/", class: "btn" }, t("common.backToDrills"))
   );
   onCleanup(() => {
     input.value = "";
@@ -428,43 +517,27 @@ function renderFamilyCode() {
 // ---------- About ----------
 
 function renderAbout() {
-  const chartSlot = h("div", {}, h("p", { class: "small", text: "Loading study results…" }));
+  const chartSlot = h("div", {}, h("p", { class: "small", text: t("about.loadingResults") }));
   const heading = screen(
-    "About Scam Gym",
-    h("p", { class: "lead", text: "Scam Gym is a fire drill for scam calls. You take a fictional call, reply, and get a debrief that names each pressure trick and the safer reply." }),
-    h("h2", { text: "How this works" }),
-    h(
-      "ol",
-      {},
-      h("li", { text: "Pick a drill and take the call. The caller's words are always shown on screen." }),
-      h("li", { text: "Reply by tapping. If you turn voice on, you can also speak your reply." }),
-      h("li", { text: "When the call ends, the debrief shows each trick the caller used and the habit to keep." })
-    ),
-    h("p", { text: "The one habit: stop, do not act on what the caller gave you, and verify through a channel you already trust. Call the number on your card, check your own banking app, or ask the family code word." }),
-    h("h2", { text: "What it cannot do" }),
-    h("p", { class: "limitation", text: "Scam Gym builds a habit through simulated practice. It cannot detect or stop real scams, and a real caller with a spoofed number or detailed personal information may be more convincing than any drill." }),
-    h("h2", { text: "Privacy" }),
-    h(
-      "ul",
-      {},
-      h("li", { text: "No accounts, no cookies, no trackers." }),
-      h("li", { text: "All people, banks and amounts in the drills are invented." }),
-      h("li", { text: "Your replies stay on your device. The optional study saves only your answers and a random ID." }),
-      h("li", { text: "Voice is off by default. Your browser's speech feature may send audio to its provider when voice is on." })
-    ),
-    h("h2", { text: "Before-and-after study" }),
+    t("about.title"),
+    h("p", { class: "lead", text: t("about.lead") }),
+    h("h2", { text: t("about.howTitle") }),
+    h("ol", {}, ["about.how1", "about.how2", "about.how3"].map((k) => h("li", { text: t(k) }))),
+    h("p", { text: t("about.habit") }),
+    h("h2", { text: t("about.cannotTitle") }),
+    h("p", { class: "limitation", text: t("about.limitation") }),
+    h("p", { text: t("about.voiceLimitation") }),
+    h("h2", { text: t("about.privacyTitle") }),
+    h("ul", {}, ["about.privacy1", "about.privacy2", "about.privacy3", "about.privacy4"].map((k) => h("li", { text: t(k) }))),
+    h("h2", { text: t("about.studyTitle") }),
     chartSlot,
-    h("p", {}, h("a", { href: "#/study" }, "Take the before-and-after study")),
-    h("h2", { text: "Credits" }),
-    h(
-      "ul",
-      {},
-      h("li", { text: "Browser Web Speech APIs (speech synthesis and speech recognition)" }),
-      h("li", { text: "FastAPI, Uvicorn and Pydantic" }),
-      h("li", { text: "LLM provider: none by default. Optional rephrasing can use a provider set by the host." })
-    ),
-    h("p", { text: "Built during Oct 17 to Nov 22, 2026 with AI coding assistance (Claude Code)." }),
-    h("p", { text: "Pre-existing components: None." })
+    h("p", {}, h("a", { href: "#/study" }, t("about.studyLink"))),
+    h("h2", { text: t("about.languagesTitle") }),
+    h("p", { text: t("about.translationNote") }),
+    h("h2", { text: t("about.creditsTitle") }),
+    h("ul", {}, ["about.credit1", "about.credit2", "about.credit3"].map((k) => h("li", { text: t(k) }))),
+    h("p", { text: t("about.built") }),
+    h("p", { text: t("about.preexisting") })
   );
   focusHeading(heading);
   study.renderSummary(chartSlot);
@@ -474,6 +547,7 @@ function renderAbout() {
 
 function route() {
   runCleanups();
+  renderChrome();
   const hash = location.hash || "#/";
   const [, path = "", param] = hash.match(/^#\/([^/]*)\/?(.*)$/) || [];
   try {
@@ -487,7 +561,7 @@ function route() {
       case "family-code":
         return renderFamilyCode();
       case "study":
-        return study.renderStudy(main, { screen, focusHeading, navigate, onCleanup, drillCards, safetyNotice, data: app.data });
+        return study.renderStudy(main, { screen, focusHeading, navigate, onCleanup, drillCards, safetyNotice });
       case "about":
         return renderAbout();
       default:
@@ -495,20 +569,20 @@ function route() {
     }
   } catch (err) {
     console.warn(err);
-    const heading = screen("Something went wrong", h("p", { text: "Please go back and try again." }), h("a", { href: "#/", class: "btn" }, "Back to drills"));
+    const heading = screen(t("error.title"), h("p", { text: t("error.body") }), h("a", { href: "#/", class: "btn" }, t("common.backToDrills")));
     focusHeading(heading);
   }
 }
 
 async function boot() {
+  const lang = await setLang(detectLang());
   try {
-    const res = await fetch("data/scenarios.json");
-    app.data = await res.json();
+    app.data = await loadScenarios(lang);
   } catch {
-    main.replaceChildren(h("h1", { text: "Scam Gym could not load" }), h("p", { text: "Check your connection and reload the page once. After that, it works offline." }));
+    main.replaceChildren(h("h1", { text: t("load.failTitle") }), h("p", { text: t("load.failBody") }));
     return;
   }
-  window.addEventListener("hashchange", route);
+  window.addEventListener("hashchange", () => route());
   route();
 
   api.getHealth().then((health) => {
@@ -516,7 +590,10 @@ async function boot() {
   });
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker
+      .register("sw.js")
+      .then(() => cacheLangOffline(lang))
+      .catch(() => {});
   }
 }
 

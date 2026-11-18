@@ -1,11 +1,12 @@
 import json
+import sqlite3
 import uuid
 
 import pytest
 from fastapi.testclient import TestClient
 
 from backend import db
-from backend.config import SCENARIOS_PATH, Settings
+from backend.config import SCENARIO_PATHS, Settings
 from backend.main import create_app
 
 
@@ -14,6 +15,7 @@ def session_body(pre_answers=None, post_answers=None, **overrides):
     post_answers = post_answers or ["verify"] * 5
     body = {
         "participant_id": str(uuid.uuid4()),
+        "lang": "en",
         "pre_set": "A",
         "post_set": "B",
         "pre": [{"item_id": f"A{i + 1}", "answer": a} for i, a in enumerate(pre_answers)],
@@ -42,15 +44,23 @@ def test_security_headers(client):
         assert "access-control-allow-origin" not in res.headers
 
 
-def test_scenarios_match_bundled_file(client):
-    res = client.get("/api/scenarios")
+@pytest.mark.parametrize("lang", ["en", "es", "fr"])
+def test_scenarios_match_bundled_file(client, lang):
+    res = client.get(f"/api/scenarios?lang={lang}")
     assert res.status_code == 200
-    assert res.json() == json.loads(SCENARIOS_PATH.read_text(encoding="utf-8"))
+    assert res.json() == json.loads(SCENARIO_PATHS[lang].read_text(encoding="utf-8"))
+
+
+def test_scenarios_default_and_invalid_lang(client):
+    assert client.get("/api/scenarios").json() == json.loads(SCENARIO_PATHS["en"].read_text(encoding="utf-8"))
+    for bad in ("de", "EN", "xx", ""):
+        assert client.get(f"/api/scenarios?lang={bad}").status_code == 400
 
 
 def test_static_and_spa_fallback(client):
     assert "Scam Gym" in client.get("/").text
-    assert client.get("/data/scenarios.json").status_code == 200
+    assert client.get("/data/scenarios.es.json").status_code == 200
+    assert client.get("/i18n/fr.json").status_code == 200
     res = client.get("/some/unknown/page")
     assert res.status_code == 200 and "<main id=\"app\"" in res.text
     assert '<base href="/">' in res.text  # relative assets resolve from nested paths
@@ -105,6 +115,9 @@ def test_study_duplicate_participant_ignored(client, db_path):
         lambda b: b["pre"][1].update(item_id="A1"),
         lambda b: b["pre"][0].update(item_id="B1"),
         lambda b: b.update(drills_played=["<script>"]),
+        lambda b: b.update(lang="de"),
+        lambda b: b.update(lang="ES"),
+        lambda b: b.update(lang=None),
     ],
 )
 def test_study_validation_rejects(client, db_path, mutate):
@@ -121,8 +134,62 @@ def test_summary_empty(client):
     res = client.get("/api/study/summary")
     assert res.json() == {
         "n": 0, "pre_verify_rate": 0.0, "post_verify_rate": 0.0,
-        "change_points": 0, "per_item": [], "label": "Small sample, self-reported",
+        "change_points": 0, "per_item": [], "by_lang": {"en": 0, "es": 0, "fr": 0},
+        "label": "Small sample, self-reported",
     }
+
+
+@pytest.mark.parametrize("lang", ["en", "es", "fr"])
+def test_study_lang_stored(client, db_path, lang):
+    assert client.post("/api/study/session", json=session_body(lang=lang)).status_code == 201
+    assert db.all_sessions(db_path)[0]["lang"] == lang
+
+
+def test_study_lang_defaults_to_en_for_old_clients(client, db_path):
+    body = session_body()
+    body.pop("lang")
+    assert client.post("/api/study/session", json=body).status_code == 201
+    assert db.all_sessions(db_path)[0]["lang"] == "en"
+
+
+def test_summary_by_lang_and_filter(client):
+    for lang, post in (("en", ["verify"] * 5), ("es", ["verify"] * 5), ("es", ["comply"] * 5), ("fr", ["verify"] * 5)):
+        client.post("/api/study/session", json=session_body(post_answers=post, lang=lang))
+    data = client.get("/api/study/summary").json()
+    assert data["n"] == 4
+    assert data["by_lang"] == {"en": 1, "es": 2, "fr": 1}
+    assert data["post_verify_rate"] == 0.75
+    es = client.get("/api/study/summary?lang=es").json()
+    assert es["n"] == 2 and es["post_verify_rate"] == 0.5
+    assert es["by_lang"] == {"en": 1, "es": 2, "fr": 1}  # counts always cover all languages
+    assert client.get("/api/study/summary?lang=fr").json()["n"] == 1
+    assert client.get("/api/study/summary?lang=pt").status_code == 400
+
+
+def test_migration_adds_lang_to_existing_database(tmp_path):
+    path = str(tmp_path / "old.db")
+    conn = sqlite3.connect(path)
+    conn.executescript(
+        """CREATE TABLE study_sessions (
+          participant_id TEXT PRIMARY KEY, pre_set TEXT, post_set TEXT,
+          pre_json TEXT, post_json TEXT, drills_json TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP);"""
+    )
+    answers = json.dumps([{"item_id": f"A{i}", "answer": "verify"} for i in range(1, 6)])
+    conn.execute("INSERT INTO study_sessions (participant_id, pre_set, post_set, pre_json, post_json, drills_json) "
+                 "VALUES ('old-1', 'A', 'B', ?, ?, '[]')", (answers, answers.replace("A", "B")))
+    conn.commit()
+    conn.close()
+
+    app = create_app(Settings(database_path=path))  # runs init_db and the migration
+    with TestClient(app) as c:
+        cols = [r[1] for r in sqlite3.connect(path).execute("PRAGMA table_info(study_sessions)")]
+        assert "lang" in cols
+        assert db.all_sessions(path)[0]["lang"] == "en"
+        assert c.get("/api/study/summary").json()["by_lang"] == {"en": 1, "es": 0, "fr": 0}
+        assert c.post("/api/study/session", json=session_body(lang="fr")).status_code == 201
+    db.init_db(path)  # idempotent
+    assert {s["lang"] for s in db.all_sessions(path)} == {"en", "fr"}
 
 
 def test_summary_math_on_seeded_db(client, db_path):

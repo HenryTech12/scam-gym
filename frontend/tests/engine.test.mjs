@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRun, getNode, getEnd, choose, endCall, isEnd, pressure, DrillError } from "../js/engine.js";
 
-const data = JSON.parse(readFileSync(new URL("../data/scenarios.json", import.meta.url), "utf8"));
+const load = (lang) => JSON.parse(readFileSync(new URL(`../data/scenarios.${lang}.json`, import.meta.url), "utf8"));
+const data = load("en");
 const ids = data.scenarios.map((s) => s.id);
 
 function playBy(state, pick) {
@@ -90,3 +91,16 @@ test("safe choice can lead to a node (family code word) and still end safe", () 
   s = choose(s, "c2");
   assert.equal(s.status, "safe");
 });
+
+for (const lang of ["en", "es", "fr"]) {
+  const d = load(lang);
+  for (const s of d.scenarios) {
+    test(`${lang}/${s.id}: safe path ends safe, first risky path ends lost`, () => {
+      const safe = playBy(createRun(d, s.id), (cs) => cs.find((c) => c.type === "safe"));
+      assert.equal(safe.status, "safe");
+      const lost = playBy(createRun(d, s.id), (cs) => cs.find((c) => c.type === "risky"));
+      assert.equal(lost.status, "lost");
+      assert.equal(getEnd(lost).result, "lost");
+    });
+  }
+}

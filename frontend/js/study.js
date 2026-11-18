@@ -1,11 +1,12 @@
 // Optional before-and-after study. Everything lives in memory until the final, consented POST.
 
 import { h, icon } from "./dom.js";
+import { t, getLang } from "./i18n.js";
 import * as api from "./api.js";
 
 const DRILLS_NEEDED = 2;
 
-let items = null;
+const itemCache = new Map();
 let s = null; // study state, null when not started
 
 function uuid4() {
@@ -17,12 +18,14 @@ function uuid4() {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-async function loadItems() {
-  if (!items) {
-    const res = await fetch("data/study_items.json");
-    items = await res.json();
+// Items keep the same ids (A1-A5, B1-B5) in every language, so results stay comparable.
+async function loadItems(lang) {
+  if (!itemCache.has(lang)) {
+    const res = await fetch(`data/study_items.${lang}.json`);
+    if (!res.ok) throw new Error(`study items ${lang}: ${res.status}`);
+    itemCache.set(lang, await res.json());
   }
-  return items;
+  return itemCache.get(lang);
 }
 
 // True while the participant is between the pre-test and the post-test.
@@ -48,6 +51,7 @@ function start() {
   s = {
     phase: "pre",
     pid: uuid4(),
+    lang: getLang(),
     preSet: preFirst ? "A" : "B",
     postSet: preFirst ? "B" : "A",
     pre: [],
@@ -58,32 +62,30 @@ function start() {
   };
 }
 
-const setItems = (set) => items.items.filter((i) => i.set === set);
-const verifyCount = (answers) => answers.filter((a) => a.answer === items.correct).length;
-
 export async function renderStudy(main, ctx) {
+  let items;
   try {
-    await loadItems();
+    items = await loadItems(getLang());
   } catch {
-    const heading = ctx.screen("Study unavailable", h("p", { text: "The study questions could not load. You can still play the drills." }), h("a", { href: "#/", class: "btn" }, "Back to drills"));
+    const heading = ctx.screen(t("study.unavailableTitle"), h("p", { text: t("study.unavailableBody") }), h("a", { href: "#/", class: "btn" }, t("common.backToDrills")));
     return ctx.focusHeading(heading);
   }
   const rerender = () => renderStudy(main, ctx);
 
-  if (!s || s.phase === "consent") return consent(ctx, rerender);
-  if (s.phase === "pre" || s.phase === "post") return question(ctx, rerender);
+  if (!s) return consent(ctx, rerender);
+  if (s.phase === "pre" || s.phase === "post") return question(ctx, items, rerender);
   if (s.phase === "drills") return drills(ctx);
-  if (s.phase === "done") return thanks(ctx);
+  if (s.phase === "done") return thanks(ctx, items);
 }
 
 function consent(ctx, rerender) {
   const box = h("input", { type: "checkbox", id: "consent" });
   const err = h("p", { class: "status", role: "status" });
   const heading = ctx.screen(
-    "Before-and-after study",
-    h("p", { text: "This is a short anonymous study for a hackathon project. We record only your answers and a random ID. No names or contact details. You can stop at any time." }),
-    h("p", { text: "You answer 5 short questions, play any two drills, then answer 5 different questions. It takes about 5 minutes." }),
-    h("div", { class: "toggle-row" }, box, h("label", { for: "consent", text: "I agree to take part" })),
+    t("study.title"),
+    h("p", { text: t("study.consent") }),
+    h("p", { text: t("study.about") }),
+    h("div", { class: "toggle-row" }, box, h("label", { for: "consent", text: t("study.agree") })),
     err,
     h(
       "div",
@@ -95,7 +97,7 @@ function consent(ctx, rerender) {
           type: "button",
           onclick: () => {
             if (!box.checked) {
-              err.textContent = "Please tick the box to agree first, or go back to the drills.";
+              err.textContent = t("study.agreeFirst");
               box.focus();
               return;
             }
@@ -103,17 +105,17 @@ function consent(ctx, rerender) {
             rerender();
           },
         },
-        "Start"
+        t("study.start")
       ),
-      h("a", { href: "#/", class: "btn" }, "Not now")
+      h("a", { href: "#/", class: "btn" }, t("study.notNow"))
     )
   );
   ctx.focusHeading(heading);
 }
 
-function question(ctx, rerender) {
+function question(ctx, items, rerender) {
   const isPre = s.phase === "pre";
-  const list = setItems(isPre ? s.preSet : s.postSet);
+  const list = items.items.filter((i) => i.set === (isPre ? s.preSet : s.postSet));
   const answers = isPre ? s.pre : s.post;
   const item = list[s.index];
 
@@ -131,16 +133,16 @@ function question(ctx, rerender) {
   };
 
   const heading = ctx.screen(
-    isPre ? "Before the drills" : "After the drills",
-    h("p", { class: "progress", text: `Question ${s.index + 1} of ${list.length}` }),
+    isPre ? t("study.beforeTitle") : t("study.afterTitle"),
+    h("p", { class: "progress", text: t("study.questionOf", { n: s.index + 1, total: list.length }) }),
     h("div", { class: "item-card" }, h("p", { class: "item-text", text: item.text })),
-    h("h2", { id: "q-prompt", text: "What would you do?" }),
+    h("h2", { id: "q-prompt", text: t("study.whatWouldYouDo") }),
     h(
       "div",
       { class: "replies", role: "group", "aria-labelledby": "q-prompt" },
       item.options.map((o) => h("button", { class: "btn btn-reply", type: "button", onclick: () => answer(o.id) }, o.label))
     ),
-    h("button", { class: "btn btn-link", type: "button", onclick: () => stop(ctx) }, "Stop the study")
+    h("button", { class: "btn btn-link", type: "button", onclick: () => stop(ctx) }, t("study.stop"))
   );
   ctx.focusHeading(heading);
 }
@@ -151,84 +153,84 @@ function stop(ctx) {
 }
 
 function drills(ctx) {
-  const done = s.drills.size;
   const heading = ctx.screen(
-    "Now play two drills",
-    h("p", { class: "progress", text: `${done} of ${DRILLS_NEEDED} drills done` }),
-    h("p", { text: "Play any two different drills. After each call, come back here from the debrief." }),
+    t("study.drillsTitle"),
+    h("p", { class: "progress", text: t("study.drillsDone", { n: s.drills.size, total: DRILLS_NEEDED }) }),
+    h("p", { text: t("study.drillsBody") }),
     ctx.safetyNotice(),
     ctx.drillCards((id) => ctx.navigate(`#/drill/${id}`)),
-    h("button", { class: "btn btn-link", type: "button", onclick: () => stop(ctx) }, "Stop the study")
+    h("button", { class: "btn btn-link", type: "button", onclick: () => stop(ctx) }, t("study.stop"))
   );
   ctx.focusHeading(heading);
 }
 
 async function submit() {
+  const current = s;
   const payload = {
-    participant_id: s.pid,
-    pre_set: s.preSet,
-    post_set: s.postSet,
-    pre: s.pre,
-    post: s.post,
-    drills_played: [...s.drills],
+    participant_id: current.pid,
+    lang: current.lang,
+    pre_set: current.preSet,
+    post_set: current.postSet,
+    pre: current.pre,
+    post: current.post,
+    drills_played: [...current.drills],
     consent: true,
   };
-  const current = s;
   current.saved = "pending";
   current.saved = (await api.postStudySession(payload)) ? "yes" : "no";
-  if (s === current && location.hash === "#/study") {
+  if (s === current) {
     const slot = document.getElementById("save-status");
     if (slot) slot.textContent = saveText(current.saved);
   }
 }
 
 function saveText(saved) {
-  if (saved === "yes") return "Your answers were saved anonymously. Thank you.";
-  if (saved === "no") return "Your results could not be saved, but you can still keep going.";
-  return "Saving your answers…";
+  if (saved === "yes") return t("study.saved");
+  if (saved === "no") return t("study.notSaved");
+  return t("study.saving");
 }
 
-function thanks(ctx) {
-  const pre = verifyCount(s.pre);
-  const post = verifyCount(s.post);
+function thanks(ctx, items) {
+  const verify = (answers) => answers.filter((a) => a.answer === items.correct).length;
   const chartSlot = h("div");
   const heading = ctx.screen(
-    "Thank you",
+    t("study.thanksTitle"),
     h("p", { id: "save-status", role: "status", text: saveText(s.saved) }),
     h(
       "dl",
       { class: "scores" },
-      h("div", {}, h("dt", { text: "Before the drills" }), h("dd", { text: `${pre} of 5 safe answers` })),
-      h("div", {}, h("dt", { text: "After the drills" }), h("dd", { text: `${post} of 5 safe answers` }))
+      h("div", {}, h("dt", { text: t("study.beforeScore") }), h("dd", { text: t("study.scoreValue", { n: verify(s.pre) }) })),
+      h("div", {}, h("dt", { text: t("study.afterScore") }), h("dd", { text: t("study.scoreValue", { n: verify(s.post) }) }))
     ),
-    h("p", { class: "small", text: "A safe answer is one where you stop and verify through a channel you already trust." }),
-    h("div", { class: "habit" }, h("p", { class: "habit-label", text: "The habit" }), h("p", { class: "habit-text", text: "Stop. Do not act on what the caller gave you. Verify through a channel you already trust." })),
-    h("h2", { text: "Everyone's results so far" }),
+    h("p", { class: "small", text: t("study.safeAnswerNote") }),
+    h("div", { class: "habit" }, h("p", { class: "habit-label", text: t("debrief.habit") }), h("p", { class: "habit-text", text: t("study.habit") })),
+    h("h2", { text: t("study.everyone") }),
     chartSlot,
     h(
       "div",
       { class: "actions" },
-      h("a", { href: "#/", class: "btn btn-primary" }, "Back to drills"),
-      h("a", { href: "#/family-code", class: "btn" }, "Set a family code word")
+      h("a", { href: "#/", class: "btn btn-primary" }, t("common.backToDrills")),
+      h("a", { href: "#/family-code", class: "btn" }, t("debrief.setCode"))
     )
   );
   ctx.focusHeading(heading);
   // Show the summary after the save has had a chance to land.
   setTimeout(() => renderSummary(chartSlot), s.saved === "pending" ? 1500 : 0);
   ctx.onCleanup(() => {
-    if (s && s.phase === "done" && s.saved !== "pending") s = null;
+    if (s && s.phase === "done" && s.saved !== "pending" && !location.hash.startsWith("#/study")) s = null;
   });
 }
 
-// Renders the aggregate study chart into `slot`. Used by the About page and the thank-you screen.
+// Renders the aggregate study chart (all languages combined) into `slot`.
+// Used by the About page and the thank-you screen.
 export async function renderSummary(slot) {
   const sum = await api.getStudySummary();
   if (!sum) {
-    slot.replaceChildren(h("p", { class: "small", text: "Study results are not available right now (offline or no server)." }));
+    slot.replaceChildren(h("p", { class: "small", text: t("chart.unavailable") }));
     return;
   }
   if (!sum.n) {
-    slot.replaceChildren(h("p", { class: "small", text: "No study results yet." }));
+    slot.replaceChildren(h("p", { class: "small", text: t("chart.empty") }));
     return;
   }
   const pct = (r) => Math.round(r * 100);
@@ -237,16 +239,21 @@ export async function renderSummary(slot) {
     fill.style.width = `${pct(rate)}%`; // CSSOM, allowed by the CSP
     return h("div", { class: "bar-row" }, h("span", { class: "bar-label", text: label }), h("span", { class: "bar", "aria-hidden": "true" }, fill), h("span", { class: "bar-value", text: `${pct(rate)}%` }));
   };
-  const change = sum.change_points;
+  const change = `${sum.change_points >= 0 ? "+" : ""}${sum.change_points}`;
   slot.replaceChildren(
     h(
       "figure",
       { class: "chart" },
-      h("figcaption", {}, `Share of answers that chose to verify. n = ${sum.n} ${sum.n === 1 ? "participant" : "participants"}. `, h("em", { text: sum.label || "Small sample, self-reported" })),
-      bar("Before", sum.pre_verify_rate, "bar-pre"),
-      bar("After", sum.post_verify_rate, "bar-post"),
-      h("p", { class: "small", text: `Change: ${change >= 0 ? "+" : ""}${change} percentage points.` })
+      h(
+        "figcaption",
+        {},
+        `${t("chart.caption", { n: sum.n, participants: sum.n === 1 ? t("chart.participantOne") : t("chart.participantMany") })} `,
+        h("em", { text: t("chart.label") })
+      ),
+      bar(t("chart.before"), sum.pre_verify_rate, "bar-pre"),
+      bar(t("chart.after"), sum.post_verify_rate, "bar-post"),
+      h("p", { class: "small", text: t("chart.change", { change }) })
     ),
-    h("p", { class: "small" }, icon("alert", "icon icon-sm"), " This is a small, self-reported practice study, not proof that anyone is protected from real scams.")
+    h("p", { class: "small" }, icon("alert", "icon icon-sm"), ` ${t("chart.disclaimer")}`)
   );
 }

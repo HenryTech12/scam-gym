@@ -1,0 +1,678 @@
+{
+  "version": 1,
+  "tactics_glossary": {
+    "authority": {
+      "name": "Se faire passer pour quelqu'un d'officiel",
+      "explanation": "Les escrocs se disent banque, administration ou patron pour que vous ne posiez pas de questions.",
+      "safer": "Dites que vous rappellerez sur un numéro que vous avez déjà."
+    },
+    "deadline": {
+      "name": "Délai artificiel",
+      "explanation": "Un compte à rebours court vous empêche de réfléchir ou de demander conseil.",
+      "safer": "Un vrai problème peut attendre cinq minutes. Ralentissez."
+    },
+    "fear": {
+      "name": "Peur de perdre ou d'être arrêté",
+      "explanation": "Les menaces vous poussent à agir avant de vérifier.",
+      "safer": "Raccrochez, puis vérifiez par le canal officiel."
+    },
+    "fake_proof": {
+      "name": "Fausse preuve",
+      "explanation": "Ils citent un détail, envoient un message qui a l'air vrai ou montrent une capture d'écran.",
+      "safer": "Les détails peuvent être volés. Vérifiez par vous-même."
+    },
+    "secrecy": {
+      "name": "« N'en parlez à personne »",
+      "explanation": "Le secret écarte la personne qui repérerait l'arnaque.",
+      "safer": "Parlez-en tout de suite à quelqu'un de confiance."
+    },
+    "isolation": {
+      "name": "« Restez en ligne »",
+      "explanation": "Vous garder au téléphone vous empêche de vérifier.",
+      "safer": "Vous avez toujours le droit de raccrocher."
+    },
+    "emotion": {
+      "name": "Pression émotionnelle",
+      "explanation": "Une voix qui pleure ou panique, même familière, coupe la réflexion.",
+      "safer": "Utilisez un mot de passe familial ou appelez son vrai numéro."
+    },
+    "rush": {
+      "name": "Précipitation",
+      "explanation": "« Mon bus part » fait passer toute attente pour une insulte.",
+      "safer": "Un vrai client peut attendre la confirmation."
+    },
+    "fake_alert": {
+      "name": "Fausse alerte",
+      "explanation": "Un message qui ressemble à une alerte de crédit bancaire ne prouve pas que l'argent est arrivé.",
+      "safer": "Vérifiez le solde dans votre propre appli bancaire."
+    }
+  },
+  "scenarios": [
+    {
+      "id": "bank-call",
+      "title": "L'appel de sécurité de la banque",
+      "blurb": "Quelqu'un dit que votre carte va être bloquée.",
+      "audience": "everyone",
+      "caller": {
+        "name": "M. Lefèvre",
+        "role": "Service sécurité de Kestrel Bank",
+        "voice": "male"
+      },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Bonjour. Ici M. Lefèvre, du service sécurité de Kestrel Bank. Une activité suspecte a été détectée et votre carte sera bloquée dans une heure. Je dois confirmer votre date de naissance.",
+          "tactics": [
+            "authority",
+            "deadline",
+            "fear"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Donner ma date de naissance",
+              "type": "risky",
+              "to": "n2",
+              "keywords": [
+                "date de naissance",
+                "je suis né",
+                "je suis née",
+                "né le",
+                "née le",
+                "mon anniversaire",
+                "d'accord",
+                "oui bien sûr",
+                "janvier",
+                "février",
+                "mars",
+                "avril",
+                "mai",
+                "juin",
+                "juillet",
+                "août",
+                "septembre",
+                "octobre",
+                "novembre",
+                "décembre"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Demander pourquoi il appelle",
+              "type": "stall",
+              "to": "n3",
+              "keywords": [
+                "pourquoi",
+                "qui est à l'appareil",
+                "qui êtes-vous",
+                "vous êtes qui",
+                "c'est qui",
+                "qu'est-ce qui se passe",
+                "que se passe-t-il",
+                "que voulez-vous",
+                "quelle activité",
+                "expliquez-moi"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Raccrocher et appeler le numéro de ma carte",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "je raccroche",
+                "raccrocher",
+                "je rappelle la banque",
+                "j'appelle la banque",
+                "numéro de ma carte",
+                "numéro au dos",
+                "je vous rappelle",
+                "je vais vérifier",
+                "au revoir",
+                "je passe à l'agence",
+                "je vérifie"
+              ]
+            }
+          ]
+        },
+        "n2": {
+          "say": "Merci. Je vois que votre solde est d'environ 180 000. Quelqu'un vient d'essayer de transférer 250 000. Un code vient de vous être envoyé. Lisez-le-moi pour que je bloque l'opération.",
+          "tactics": [
+            "fake_proof",
+            "fear"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Lire le code",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "voici le code",
+                "mon code est",
+                "le code est",
+                "le code c'est",
+                "je vous lis le code",
+                "je vous le lis",
+                "j'ai reçu le code",
+                "j'ai le code",
+                "ça dit",
+                "les chiffres sont",
+                "attendez je le lis"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Dire que les banques ne demandent jamais de code et raccrocher",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "les banques ne demandent jamais",
+                "la banque ne demande jamais",
+                "jamais de code",
+                "je raccroche",
+                "raccrocher",
+                "arnaque",
+                "arnaqueur",
+                "escroc",
+                "je ne donne rien",
+                "je rappelle la banque",
+                "au revoir",
+                "je connais ce truc"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Demander son matricule",
+              "type": "stall",
+              "to": "n3",
+              "keywords": [
+                "matricule",
+                "votre identifiant",
+                "numéro d'employé",
+                "votre badge",
+                "votre nom complet",
+                "quelle agence",
+                "prouvez-le",
+                "prouvez",
+                "votre carte professionnelle",
+                "comment vous appelez-vous"
+              ]
+            }
+          ]
+        },
+        "n3": {
+          "say": "On n'a pas le temps. Mon matricule est KB-4471. Surtout, ne raccrochez pas, sinon ils vont vider le compte. Lisez-moi le code maintenant.",
+          "tactics": [
+            "isolation",
+            "deadline",
+            "fear",
+            "fake_proof"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Lire le code",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "voici le code",
+                "mon code est",
+                "le code est",
+                "le code c'est",
+                "je vous lis le code",
+                "je vous le lis",
+                "j'ai reçu le code",
+                "j'ai le code",
+                "ça dit",
+                "les chiffres sont",
+                "attendez je le lis"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Raccrocher et appeler la banque moi-même",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "je raccroche",
+                "raccrocher",
+                "je rappelle la banque",
+                "j'appelle la banque",
+                "moi-même",
+                "numéro de ma carte",
+                "je vais vérifier",
+                "au revoir",
+                "je passe à l'agence",
+                "escroc",
+                "je ne donne rien",
+                "arnaque"
+              ]
+            }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": {
+          "result": "safe",
+          "headline": "Vous avez raccroché et vérifié.",
+          "habit": "Une vraie banque ne demande jamais votre code. Raccrochez et appelez le numéro au dos de votre carte."
+        },
+        "end_lost": {
+          "result": "lost",
+          "headline": "C'est là que l'argent aurait disparu.",
+          "habit": "Ne lisez jamais un code ou un PIN à quelqu'un qui vous a appelé."
+        }
+      }
+    },
+    {
+      "id": "family-voice",
+      "title": "C'est moi, j'ai un problème",
+      "blurb": "Une voix qui ressemble à celle de votre fils demande de l'argent, vite.",
+      "audience": "families",
+      "notice": "Voix clonée simulée. Dans la vraie vie, une voix copiée peut ressembler exactement à celle d'un proche.",
+      "offer_family_code": true,
+      "caller": {
+        "name": "« Julien »",
+        "role": "Numéro inconnu, on dirait votre fils",
+        "voice": "male"
+      },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Maman, c'est moi. J'ai eu un accident. Mon téléphone est cassé, j'appelle avec celui de quelqu'un. S'il te plaît, envoie 150 000 sur ce compte maintenant. Ne dis rien à papa.",
+          "tactics": [
+            "emotion",
+            "secrecy",
+            "rush"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Envoyer l'argent",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "j'envoie",
+                "je t'envoie",
+                "je vais envoyer",
+                "je fais le virement",
+                "virement",
+                "donne-moi le compte",
+                "numéro de compte",
+                "quel compte",
+                "oui mon chéri",
+                "tout de suite",
+                "je te l'envoie",
+                "je transfère"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Demander notre mot de passe familial",
+              "type": "safe",
+              "to": "n2",
+              "keywords": [
+                "mot de passe",
+                "mot code",
+                "code familial",
+                "mot secret",
+                "notre mot",
+                "dis-moi le mot",
+                "prouve que c'est toi",
+                "c'est quoi notre",
+                "notre code",
+                "le mot de passe familial"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Raccrocher et appeler le vrai numéro de Julien",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "je raccroche",
+                "raccrocher",
+                "j'appelle julien",
+                "ton vrai numéro",
+                "ton numéro habituel",
+                "je te rappelle",
+                "je rappelle",
+                "appeler ton téléphone",
+                "ton numéro",
+                "au revoir",
+                "laisse-moi appeler",
+                "je l'appelle"
+              ]
+            }
+          ]
+        },
+        "n2": {
+          "say": "Maman, s'il te plaît, je ne m'en souviens pas, je suis blessé ! L'hôpital ne me soigne pas tant que je n'ai pas payé. Pourquoi tu perds du temps ?",
+          "tactics": [
+            "emotion",
+            "rush",
+            "fear"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Envoyer l'argent pour l'aider",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "j'envoie",
+                "je t'envoie",
+                "je vais envoyer",
+                "je fais le virement",
+                "virement",
+                "donne-moi le compte",
+                "numéro de compte",
+                "quel compte",
+                "oui mon chéri",
+                "tout de suite",
+                "je te l'envoie",
+                "je transfère",
+                "je paie l'hôpital",
+                "je t'aide"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Raccrocher et appeler le vrai numéro de Julien",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "je raccroche",
+                "raccrocher",
+                "j'appelle julien",
+                "ton vrai numéro",
+                "ton numéro habituel",
+                "je te rappelle",
+                "je rappelle",
+                "appeler ton téléphone",
+                "ton numéro",
+                "au revoir",
+                "laisse-moi appeler",
+                "je l'appelle"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Demander où il est",
+              "type": "stall",
+              "to": "n3",
+              "keywords": [
+                "où es-tu",
+                "t'es où",
+                "quel hôpital",
+                "dans quel hôpital",
+                "où",
+                "le nom de l'hôpital",
+                "l'adresse",
+                "qu'est-ce qui s'est passé",
+                "comment c'est arrivé",
+                "dis-moi où"
+              ]
+            }
+          ]
+        },
+        "n3": {
+          "say": "Je ne peux pas te le dire. Envoie-le maintenant et ne raccroche pas. S'il te plaît, maman, n'appelle personne.",
+          "tactics": [
+            "isolation",
+            "secrecy",
+            "rush",
+            "emotion"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Envoyer l'argent",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "j'envoie",
+                "je t'envoie",
+                "je vais envoyer",
+                "je fais le virement",
+                "virement",
+                "donne-moi le compte",
+                "numéro de compte",
+                "quel compte",
+                "oui mon chéri",
+                "tout de suite",
+                "je te l'envoie",
+                "je transfère"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Raccrocher et appeler le vrai numéro de Julien",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "je raccroche",
+                "raccrocher",
+                "j'appelle julien",
+                "ton vrai numéro",
+                "ton numéro habituel",
+                "je te rappelle",
+                "je rappelle",
+                "appeler ton téléphone",
+                "ton numéro",
+                "au revoir",
+                "laisse-moi appeler",
+                "je l'appelle",
+                "j'appelle ton père",
+                "j'appelle papa"
+              ]
+            }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": {
+          "result": "safe",
+          "headline": "Vous avez vérifié avant d'envoyer.",
+          "habit": "Une voix familière n'est pas une preuve. Utilisez un mot de passe familial, ou raccrochez et appelez son vrai numéro."
+        },
+        "end_lost": {
+          "result": "lost",
+          "headline": "C'est là que l'argent aurait disparu.",
+          "habit": "Une voix peut être copiée à partir de quelques secondes d'audio. Vérifiez toujours."
+        }
+      }
+    },
+    {
+      "id": "pos-alert",
+      "title": "La fausse alerte de virement",
+      "blurb": "Pour les commerçants : un client montre une alerte et veut partir avec ses achats.",
+      "audience": "pos-agents",
+      "caller": {
+        "name": "Client à votre comptoir",
+        "role": "Dit qu'il vous a déjà payé par virement",
+        "voice": "male"
+      },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Bon, je vous ai déjà fait un virement de 40 000. Regardez votre téléphone, l'alerte est là. Donnez-moi mes achats, mon bus part.",
+          "tactics": [
+            "fake_alert",
+            "rush"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Lui remettre ses achats",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "voilà",
+                "tenez",
+                "prenez",
+                "voici vos achats",
+                "vous pouvez partir",
+                "c'est bon",
+                "allez-y",
+                "je vous les donne",
+                "prenez votre sac",
+                "d'accord tenez"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Vérifier mon appli bancaire, pas le SMS",
+              "type": "safe",
+              "to": "n2",
+              "keywords": [
+                "mon appli",
+                "appli bancaire",
+                "application bancaire",
+                "je vérifie mon compte",
+                "mon solde",
+                "je vérifie mon solde",
+                "je vais vérifier",
+                "laissez-moi vérifier",
+                "je contrôle",
+                "je regarde mon compte",
+                "pas le sms",
+                "pas le message"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Lui demander d'attendre",
+              "type": "stall",
+              "to": "n3",
+              "keywords": [
+                "attendez",
+                "un instant",
+                "une minute",
+                "patientez",
+                "un moment",
+                "calmez-vous",
+                "pas de panique",
+                "doucement",
+                "une seconde",
+                "patience"
+              ]
+            }
+          ]
+        },
+        "n2": {
+          "say": "Regardez le message ! Pourquoi vous me faites perdre mon temps ? Tout le monde fait comme ça.",
+          "tactics": [
+            "rush",
+            "fake_proof"
+          ],
+          "visual": {
+            "kind": "sms",
+            "sender": "Expéditeur inconnu",
+            "text": "ALERTE CRÉDIT. Cpte : 01******89. Montant : 40 000,00 CR. Libellé : VIR DE L. MORA. Merci de votre confiance.",
+            "note": "Message fictif montré par le client. N'importe qui peut écrire un message comme celui-ci."
+          },
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Lui remettre ses achats",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "voilà",
+                "tenez",
+                "prenez",
+                "voici vos achats",
+                "vous pouvez partir",
+                "c'est bon",
+                "allez-y",
+                "je vous les donne",
+                "prenez votre sac",
+                "d'accord tenez"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Attendre que ma propre appli affiche l'argent",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "jusqu'à ce que",
+                "ma propre appli",
+                "mon appli",
+                "quand je le verrai",
+                "quand ça apparaît",
+                "mon solde",
+                "appli bancaire",
+                "j'attends de voir",
+                "pas avant",
+                "quand l'argent arrive"
+              ]
+            }
+          ]
+        },
+        "n3": {
+          "say": "Regardez encore le message. L'argent est là. Je vais être en retard. Donnez-moi mes achats.",
+          "tactics": [
+            "rush",
+            "fake_alert",
+            "deadline"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Lui remettre ses achats",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "voilà",
+                "tenez",
+                "prenez",
+                "voici vos achats",
+                "vous pouvez partir",
+                "c'est bon",
+                "allez-y",
+                "je vous les donne",
+                "prenez votre sac",
+                "d'accord tenez"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Vérifier d'abord ma propre appli bancaire",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "mon appli",
+                "appli bancaire",
+                "application bancaire",
+                "je vérifie mon compte",
+                "mon solde",
+                "je vérifie mon solde",
+                "je vais vérifier",
+                "laissez-moi vérifier",
+                "je contrôle",
+                "je regarde mon compte",
+                "d'abord",
+                "ma propre appli"
+              ]
+            }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": {
+          "result": "safe",
+          "headline": "Vous avez vérifié votre propre solde.",
+          "habit": "Un message n'est pas de l'argent. Seule votre propre appli bancaire confirme un virement."
+        },
+        "end_lost": {
+          "result": "lost",
+          "headline": "C'est là que vous auriez perdu la marchandise.",
+          "habit": "Les fausses alertes ont l'air vraies. Vérifiez dans votre propre appli bancaire avant de remettre quoi que ce soit."
+        }
+      }
+    }
+  ]
+}

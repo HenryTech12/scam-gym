@@ -27,15 +27,15 @@ def main() -> None:
     sessions = db.all_sessions(args.db)
     with open(args.out, "w", newline="", encoding="utf-8") as fh:
         writer = csv.writer(fh)
-        writer.writerow(["participant_id", "created_at", "phase", "set", "item_id", "answer", "drills_played"])
+        writer.writerow(["participant_id", "created_at", "lang", "phase", "set", "item_id", "answer", "drills_played"])
         for s in sessions:
             drills = ";".join(s["drills"])
             for phase, set_id in (("pre", s["pre_set"]), ("post", s["post_set"])):
                 for a in s[phase]:
-                    writer.writerow([s["participant_id"], s["created_at"], phase, set_id, a["item_id"], a["answer"], drills])
+                    writer.writerow([s["participant_id"], s["created_at"], s["lang"], phase, set_id, a["item_id"], a["answer"], drills])
 
     summary = summarize(sessions)
-    print(f"Wrote {args.out}: {summary.n} participants")
+    print(f"Wrote {args.out}: {summary.n} participants ({', '.join(f'{k}: {v}' for k, v in summary.by_lang.items())})")
     print(f"Verify rate before: {summary.pre_verify_rate:.0%}, after: {summary.post_verify_rate:.0%}, "
           f"change: {summary.change_points:+d} points ({summary.label.lower()})")
     # A safer-outcome example for the write-up: comply before, verify after on matched scenarios.

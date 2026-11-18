@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "correct": "verify",
+  "items": [
+    {
+      "id": "A1",
+      "set": "A",
+      "text": "Recibes un mensaje: \"Kestrel Bank: su cuenta está bloqueada. Responda con el código de 6 dígitos que le acabamos de enviar para desbloquearla.\"",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Responder con el código para desbloquear la cuenta"
+        },
+        {
+          "id": "verify",
+          "label": "Ignorar el mensaje y llamar al número de mi tarjeta"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "set": "A",
+      "text": "Una nota de voz desde un número nuevo suena como tu hija: \"Mamá, mándame 80.000 ya, estoy en problemas. Luego te explico.\"",
+      "options": [
+        {
+          "id": "verify",
+          "label": "Llamarla a su número de siempre o pedir nuestra palabra clave familiar"
+        },
+        {
+          "id": "comply",
+          "label": "Mandar el dinero primero, suena asustada"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "set": "A",
+      "text": "Un mensaje dice que tu paquete está retenido y te pide pagar 1.500 de gastos de envío con un enlace.",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Pagar la pequeña tarifa con el enlace"
+        },
+        {
+          "id": "verify",
+          "label": "Consultar con el vendedor o la empresa de envíos por un contacto que ya tengo"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "set": "A",
+      "text": "En tu tienda, un cliente te muestra una alerta de transferencia en su teléfono y quiere llevarse la compra de 25.000 enseguida.",
+      "options": [
+        {
+          "id": "verify",
+          "label": "Esperar a que mi propia app del banco muestre el dinero"
+        },
+        {
+          "id": "comply",
+          "label": "Entregarle la compra, la alerta parece real"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "set": "A",
+      "text": "Alguien llama diciendo que es de una autoridad policial. Dice que te detendrán hoy si no pagas una multa de 50.000 por transferencia.",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Pagar la multa para evitar la detención"
+        },
+        {
+          "id": "verify",
+          "label": "Colgar y contactar yo mismo con la oficina oficial"
+        }
+      ]
+    },
+    {
+      "id": "B1",
+      "set": "B",
+      "text": "Alguien llama y dice que tu tarjeta será bloqueada en 30 minutos si no confirmas tus datos y un código que te enviaron.",
+      "options": [
+        {
+          "id": "verify",
+          "label": "Colgar y llamar a mi banco al número de mi tarjeta"
+        },
+        {
+          "id": "comply",
+          "label": "Confirmar mis datos y el código rápido"
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "set": "B",
+      "text": "Un mensaje desde un número nuevo dice: \"Soy tu hermano. Perdí el teléfono. Mándame 20.000 urgente, por favor.\"",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Mandarlo, necesita ayuda ya"
+        },
+        {
+          "id": "verify",
+          "label": "Llamar primero a mi hermano a su número de siempre"
+        }
+      ]
+    },
+    {
+      "id": "B3",
+      "set": "B",
+      "text": "Un mensaje dice que ganaste un premio de 500.000 en una promoción. Para recibirlo, primero debes pagar 5.000 de gestión.",
+      "options": [
+        {
+          "id": "verify",
+          "label": "No pagar. Comprobar la promoción por un canal oficial que yo mismo busque"
+        },
+        {
+          "id": "comply",
+          "label": "Pagar la tarifa para cobrar el premio"
+        }
+      ]
+    },
+    {
+      "id": "B4",
+      "set": "B",
+      "text": "Alguien dice que te envió 30.000 por error y te pide que se los devuelvas hoy.",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Devolverlo enseguida para ser justo"
+        },
+        {
+          "id": "verify",
+          "label": "Revisar mi propia app del banco y preguntar a mi banco antes de enviar nada"
+        }
+      ]
+    },
+    {
+      "id": "B5",
+      "set": "B",
+      "text": "Un \"agente del banco\" llama y dice que tu dinero está en riesgo. Te pide pasarlo a una \"cuenta segura\" que él te dará.",
+      "options": [
+        {
+          "id": "verify",
+          "label": "Colgar y llamar a mi banco a un número que ya tengo"
+        },
+        {
+          "id": "comply",
+          "label": "Pasar el dinero a la cuenta segura"
+        }
+      ]
+    }
+  ]
+}

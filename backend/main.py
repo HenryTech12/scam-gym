@@ -9,16 +9,15 @@ from __future__ import annotations
 import json
 import time
 from collections import defaultdict, deque
-from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import db, study
-from .config import FRONTEND_DIR, SCENARIOS_PATH, Settings, get_settings
+from .config import FRONTEND_DIR, LANGS, SCENARIO_PATHS, Settings, get_settings
 from .rephrase import Generator, Rephraser
 from .schemas import RephraseRequest, RephraseResponse, StoredResponse, StudySession, StudySummary
 
@@ -55,15 +54,21 @@ class RateLimiter:
         return True
 
 
-def load_scenarios(path: Path = SCENARIOS_PATH) -> dict:
-    with path.open(encoding="utf-8") as fh:
+def load_scenarios(lang: str = "en") -> dict:
+    with SCENARIO_PATHS[lang].open(encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def check_lang(lang: str | None) -> str | None:
+    if lang is not None and lang not in LANGS:
+        raise HTTPException(status_code=400, detail=f"lang must be one of: {', '.join(LANGS)}")
+    return lang
 
 
 def create_app(settings: Settings | None = None, generator: Generator | None = None) -> FastAPI:
     settings = settings or get_settings()
-    scenarios = load_scenarios()
-    scenario_index = {s["id"]: s for s in scenarios["scenarios"]}
+    scenarios = {lang: load_scenarios(lang) for lang in LANGS}
+    index = {lang: {s["id"]: s for s in data["scenarios"]} for lang, data in scenarios.items()}
     # Unknown routes get index.html with a <base> so its relative asset paths still resolve.
     fallback_html = (FRONTEND_DIR / "index.html").read_text(encoding="utf-8").replace(
         "<head>", '<head>\n  <base href="/">', 1
@@ -108,26 +113,28 @@ def create_app(settings: Settings | None = None, generator: Generator | None = N
         return {"status": "ok", "llm_enabled": rephraser.enabled}
 
     @app.get("/api/scenarios")
-    def get_scenarios():
-        return scenarios
+    def get_scenarios(lang: str = Query("en")):
+        return scenarios[check_lang(lang)]
 
     @app.post("/api/rephrase", response_model=RephraseResponse)
     async def rephrase(body: RephraseRequest):
-        scenario = scenario_index.get(body.scenario_id)
+        # The original line always comes from the server's own file for that language.
+        scenario = index[body.lang].get(body.scenario_id)
         node = scenario["nodes"].get(body.node_id) if scenario else None
         if not node:
             raise HTTPException(status_code=404, detail="Unknown scenario or node.")
-        say, source = await rephraser.rephrase(body.scenario_id, body.node_id, node["say"])
+        english = index["en"][body.scenario_id]["nodes"][body.node_id]["say"]
+        say, source = await rephraser.rephrase(body.scenario_id, body.node_id, node["say"], body.lang, english)
         return RephraseResponse(say=say, source=source)
 
     @app.post("/api/study/session", response_model=StoredResponse, status_code=201)
     def study_session(body: StudySession):
-        study.store_session(settings.database_path, body, set(scenario_index))
+        study.store_session(settings.database_path, body, set(index["en"]))
         return StoredResponse(stored=True)
 
     @app.get("/api/study/summary", response_model=StudySummary)
-    def study_summary():
-        return study.summarize(db.all_sessions(settings.database_path))
+    def study_summary(lang: str | None = Query(None)):
+        return study.summarize(db.all_sessions(settings.database_path), check_lang(lang))
 
     @app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
     def api_not_found(path: str):

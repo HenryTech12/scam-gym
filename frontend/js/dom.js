@@ -1,5 +1,7 @@
 // Tiny DOM helpers. All dynamic text goes through textContent; innerHTML is never used.
 
+import { t } from "./i18n.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 export function h(tag, attrs = {}, ...children) {
@@ -49,7 +51,6 @@ export function icon(name, cls = "icon") {
 }
 
 export function typeTag(type) {
-  const map = { safe: ["Safe", "check"], risky: ["Risky", "alert"], stall: ["Stall", "pause"] };
-  const [label, ic] = map[type] || [type, "pause"];
-  return h("span", { class: `tag tag-${type}` }, icon(ic, "icon icon-sm"), label);
+  const icons = { safe: "check", risky: "alert", stall: "pause" };
+  return h("span", { class: `tag tag-${type}` }, icon(icons[type] || "pause", "icon icon-sm"), t(`tag.${type}`));
 }

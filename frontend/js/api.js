@@ -30,8 +30,8 @@ export function getHealth() {
   return healthPromise;
 }
 
-export async function rephrase(scenarioId, nodeId) {
-  const res = await request("api/rephrase", { method: "POST", body: { scenario_id: scenarioId, node_id: nodeId } });
+export async function rephrase(scenarioId, nodeId, lang = "en") {
+  const res = await request("api/rephrase", { method: "POST", body: { scenario_id: scenarioId, node_id: nodeId, lang } });
   return res && typeof res.say === "string" && res.say.trim() ? res : null;
 }
 
@@ -40,6 +40,6 @@ export async function postStudySession(payload) {
   return Boolean(res && res.stored);
 }
 
-export function getStudySummary() {
-  return request("api/study/summary");
+export function getStudySummary(lang) {
+  return request(lang ? `api/study/summary?lang=${encodeURIComponent(lang)}` : "api/study/summary");
 }

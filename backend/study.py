@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from . import db
+from .config import LANGS
 from .schemas import ItemRate, StudySession, StudySummary
 
 
@@ -17,6 +18,7 @@ def store_session(path: str, session: StudySession, known_drills: set[str]) -> N
         pre=[a.model_dump() for a in session.pre],
         post=[a.model_dump() for a in session.post],
         drills=drills,
+        lang=session.lang,
     )
 
 
@@ -24,9 +26,12 @@ def _rate(answers: list[dict]) -> float:
     return sum(a["answer"] == "verify" for a in answers) / len(answers) if answers else 0.0
 
 
-def summarize(sessions: list[dict]) -> StudySummary:
+def summarize(all_sessions: list[dict], lang: str | None = None) -> StudySummary:
+    """Rates for one language (or all combined when lang is None); by_lang always counts all."""
+    by_lang = {code: sum(s.get("lang", "en") == code for s in all_sessions) for code in LANGS}
+    sessions = [s for s in all_sessions if lang is None or s.get("lang", "en") == lang]
     if not sessions:
-        return StudySummary(n=0, pre_verify_rate=0.0, post_verify_rate=0.0, change_points=0, per_item=[])
+        return StudySummary(n=0, pre_verify_rate=0.0, post_verify_rate=0.0, change_points=0, per_item=[], by_lang=by_lang)
     pre = [a for s in sessions for a in s["pre"]]
     post = [a for s in sessions for a in s["post"]]
     pre_rate, post_rate = _rate(pre), _rate(post)
@@ -42,4 +47,5 @@ def summarize(sessions: list[dict]) -> StudySummary:
         post_verify_rate=round(post_rate, 2),
         change_points=round((post_rate - pre_rate) * 100),
         per_item=per_item,
+        by_lang=by_lang,
     )

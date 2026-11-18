@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "correct": "verify",
+  "items": [
+    {
+      "id": "A1",
+      "set": "A",
+      "text": "Vous recevez un SMS : « Kestrel Bank : votre compte est bloqué. Répondez avec le code à 6 chiffres que nous venons d'envoyer pour le débloquer. »",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Répondre avec le code pour débloquer le compte"
+        },
+        {
+          "id": "verify",
+          "label": "Ignorer le SMS et appeler le numéro au dos de ma carte"
+        }
+      ]
+    },
+    {
+      "id": "A2",
+      "set": "A",
+      "text": "Un message vocal depuis un nouveau numéro ressemble à la voix de votre fille : « Maman, envoie-moi 80 000 tout de suite, j'ai un problème. Je t'expliquerai. »",
+      "options": [
+        {
+          "id": "verify",
+          "label": "L'appeler sur son numéro habituel ou demander notre mot de passe familial"
+        },
+        {
+          "id": "comply",
+          "label": "Envoyer l'argent d'abord, elle a l'air paniquée"
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "set": "A",
+      "text": "Un message dit que votre colis est bloqué et demande de payer 1 500 de frais de livraison via un lien.",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Payer les petits frais via le lien"
+        },
+        {
+          "id": "verify",
+          "label": "Vérifier auprès du vendeur ou du transporteur avec un contact que j'ai déjà"
+        }
+      ]
+    },
+    {
+      "id": "A4",
+      "set": "A",
+      "text": "Dans votre commerce, un client vous montre une alerte de virement sur son téléphone et veut emporter ses achats de 25 000 tout de suite.",
+      "options": [
+        {
+          "id": "verify",
+          "label": "Attendre que ma propre appli bancaire affiche l'argent"
+        },
+        {
+          "id": "comply",
+          "label": "Lui remettre ses achats, l'alerte a l'air vraie"
+        }
+      ]
+    },
+    {
+      "id": "A5",
+      "set": "A",
+      "text": "Quelqu'un appelle en disant être des forces de l'ordre. Il dit que vous serez arrêté aujourd'hui si vous ne payez pas une amende de 50 000 par virement.",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Payer l'amende pour éviter l'arrestation"
+        },
+        {
+          "id": "verify",
+          "label": "Raccrocher et contacter moi-même le bureau officiel"
+        }
+      ]
+    },
+    {
+      "id": "B1",
+      "set": "B",
+      "text": "Quelqu'un appelle et dit que votre carte sera bloquée dans 30 minutes si vous ne confirmez pas vos informations et un code qu'on vous a envoyé.",
+      "options": [
+        {
+          "id": "verify",
+          "label": "Raccrocher et appeler ma banque au numéro de ma carte"
+        },
+        {
+          "id": "comply",
+          "label": "Confirmer vite mes informations et le code"
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "set": "B",
+      "text": "Un message d'un nouveau numéro dit : « C'est ton frère. J'ai perdu mon téléphone. Envoie-moi 20 000 en urgence, s'il te plaît. »",
+      "options": [
+        {
+          "id": "comply",
+          "label": "L'envoyer, il a besoin d'aide maintenant"
+        },
+        {
+          "id": "verify",
+          "label": "Appeler d'abord mon frère sur son numéro habituel"
+        }
+      ]
+    },
+    {
+      "id": "B3",
+      "set": "B",
+      "text": "Un message dit que vous avez gagné 500 000 lors d'un jeu promotionnel. Pour les recevoir, vous devez d'abord payer 5 000 de frais.",
+      "options": [
+        {
+          "id": "verify",
+          "label": "Ne pas payer. Vérifier le jeu par un canal officiel que je trouve moi-même"
+        },
+        {
+          "id": "comply",
+          "label": "Payer les frais pour toucher le gain"
+        }
+      ]
+    },
+    {
+      "id": "B4",
+      "set": "B",
+      "text": "Quelqu'un dit vous avoir envoyé 30 000 par erreur et vous demande de les renvoyer aujourd'hui.",
+      "options": [
+        {
+          "id": "comply",
+          "label": "Renvoyer l'argent tout de suite pour être honnête"
+        },
+        {
+          "id": "verify",
+          "label": "Vérifier ma propre appli bancaire et demander à ma banque avant d'envoyer quoi que ce soit"
+        }
+      ]
+    },
+    {
+      "id": "B5",
+      "set": "B",
+      "text": "Un « conseiller bancaire » appelle et dit que votre argent est en danger. Il vous demande de le transférer sur un « compte sécurisé » qu'il va vous donner.",
+      "options": [
+        {
+          "id": "verify",
+          "label": "Raccrocher et appeler ma banque sur un numéro que j'ai déjà"
+        },
+        {
+          "id": "comply",
+          "label": "Transférer l'argent sur le compte sécurisé"
+        }
+      ]
+    }
+  ]
+}

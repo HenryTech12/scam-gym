@@ -419,7 +419,7 @@ Mount `/frontend` at `/`. Serve `index.html` for unknown non-API routes.
 
 ## 15. Credits and pre-existing work (shown on About page and in README)
 
-Include a "Credits" section listing: browser Web Speech APIs, FastAPI, Uvicorn, Pydantic, and any LLM provider used. State: "Built during Oct 17 to Nov 22, 2026 with AI coding assistance (Claude Code)." Add a "Pre-existing components" line that reads "None" unless code from an earlier project is actually reused. If any is reused, name it and list what it was used for. Scenario scripts, UI and tests must be written inside the build window.
+Include a "Credits" section listing: browser Web Speech APIs, FastAPI, Uvicorn, Pydantic, and any LLM provider used. State: "Built during Oct 17 to Nov 22, 2026 with AI coding assistance (Claude Code)." Also state (Addendum A): "Spanish and French text was drafted with AI assistance and has not been reviewed by a native speaker yet." Add a "Pre-existing components" line that reads "None" unless code from an earlier project is actually reused. If any is reused, name it and list what it was used for. Scenario scripts, UI and tests must be written inside the build window.
 
 **Limitation statement (About page, README, Devpost):** "Scam Gym builds a habit through simulated practice. It cannot detect or stop real scams, and a real caller with a spoofed number or detailed personal information may be more convincing than any drill."
 

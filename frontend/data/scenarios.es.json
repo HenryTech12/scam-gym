@@ -1,0 +1,682 @@
+{
+  "version": 1,
+  "tactics_glossary": {
+    "authority": {
+      "name": "Hacerse pasar por alguien oficial",
+      "explanation": "Los estafadores dicen ser un banco, una autoridad o un jefe para que no hagas preguntas.",
+      "safer": "Di que vas a devolver la llamada a un número que ya tienes."
+    },
+    "deadline": {
+      "name": "Plazo artificial",
+      "explanation": "Una cuenta atrás corta te impide pensar o consultar a alguien.",
+      "safer": "Los problemas reales pueden esperar cinco minutos. Ve más despacio."
+    },
+    "fear": {
+      "name": "Miedo a perder o a ser detenido",
+      "explanation": "Las amenazas hacen que actúes antes de verificar.",
+      "safer": "Cuelga y comprueba por el canal oficial."
+    },
+    "fake_proof": {
+      "name": "Prueba falsa",
+      "explanation": "Citan un dato, envían un mensaje que parece real o muestran una captura.",
+      "safer": "Los datos se pueden robar. Verifica por tu cuenta."
+    },
+    "secrecy": {
+      "name": "\"No se lo digas a nadie\"",
+      "explanation": "El secreto bloquea a la persona que descubriría la estafa.",
+      "safer": "Cuéntaselo enseguida a alguien de confianza."
+    },
+    "isolation": {
+      "name": "\"No cuelgues\"",
+      "explanation": "Mantenerte en la llamada te impide comprobar.",
+      "safer": "Terminar la llamada siempre está permitido."
+    },
+    "emotion": {
+      "name": "Presión emocional",
+      "explanation": "Una voz que llora o está asustada, incluso una conocida, apaga el pensamiento cuidadoso.",
+      "safer": "Usa una palabra clave familiar o llama a su número de siempre."
+    },
+    "rush": {
+      "name": "Prisa",
+      "explanation": "\"Se me va el autobús\" convierte cualquier espera en un insulto.",
+      "safer": "Un cliente de verdad puede esperar la confirmación."
+    },
+    "fake_alert": {
+      "name": "Alerta falsa",
+      "explanation": "Un mensaje que parece un aviso de abono del banco no prueba que llegó el dinero.",
+      "safer": "Revisa el saldo en tu propia app del banco."
+    }
+  },
+  "scenarios": [
+    {
+      "id": "bank-call",
+      "title": "La llamada de seguridad del banco",
+      "blurb": "Alguien dice que tu tarjeta está a punto de ser bloqueada.",
+      "audience": "everyone",
+      "caller": {
+        "name": "Sr. Delgado",
+        "role": "Unidad de seguridad de Kestrel Bank",
+        "voice": "male"
+      },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Buenas tardes. Le habla el señor Delgado, de seguridad de Kestrel Bank. Detectamos actividad sospechosa y su tarjeta será bloqueada en una hora. Necesito confirmar su fecha de nacimiento.",
+          "tactics": [
+            "authority",
+            "deadline",
+            "fear"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Dar mi fecha de nacimiento",
+              "type": "risky",
+              "to": "n2",
+              "keywords": [
+                "fecha de nacimiento",
+                "nací",
+                "nací el",
+                "mi cumpleaños",
+                "de acuerdo",
+                "claro que sí",
+                "enero",
+                "febrero",
+                "marzo",
+                "abril",
+                "mayo",
+                "junio",
+                "julio",
+                "agosto",
+                "septiembre",
+                "octubre",
+                "noviembre",
+                "diciembre"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Preguntar por qué llama",
+              "type": "stall",
+              "to": "n3",
+              "keywords": [
+                "por qué",
+                "quién habla",
+                "quién es",
+                "quién es usted",
+                "qué pasa",
+                "qué pasó",
+                "qué quiere",
+                "para qué",
+                "de qué se trata",
+                "qué actividad",
+                "explíqueme"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Colgar y llamar al número de mi tarjeta",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "cuelgo",
+                "voy a colgar",
+                "llamo al banco",
+                "número de mi tarjeta",
+                "número de la tarjeta",
+                "lo llamo después",
+                "verifico con mi banco",
+                "voy a verificar",
+                "adiós",
+                "voy a la sucursal",
+                "llamaré al banco"
+              ]
+            }
+          ]
+        },
+        "n2": {
+          "say": "Gracias. Veo que tiene un saldo de unos 180.000. Alguien acaba de intentar mover 250.000. Le enviamos un código ahora mismo. Léamelo para que pueda bloquear la operación.",
+          "tactics": [
+            "fake_proof",
+            "fear"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Leer el código",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "el código es",
+                "mi código es",
+                "aquí está el código",
+                "aquí tiene el código",
+                "ya tengo el código",
+                "le leo el código",
+                "se lo leo",
+                "me llegó el código",
+                "los números son",
+                "ya me llegó",
+                "el código dice"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Decir que los bancos nunca piden códigos y colgar",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "los bancos nunca piden",
+                "el banco nunca pide",
+                "nunca piden códigos",
+                "cuelgo",
+                "voy a colgar",
+                "estafa",
+                "estafador",
+                "no te voy a dar nada",
+                "no le voy a dar nada",
+                "llamo al banco",
+                "adiós",
+                "conozco ese truco"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Pedir su número de empleado",
+              "type": "stall",
+              "to": "n3",
+              "keywords": [
+                "número de empleado",
+                "su identificación",
+                "su credencial",
+                "cómo se llama",
+                "su nombre completo",
+                "de qué sucursal",
+                "demuéstrelo",
+                "pruébelo",
+                "su placa",
+                "su número"
+              ]
+            }
+          ]
+        },
+        "n3": {
+          "say": "No hay tiempo. Mi número de empleado es KB-4471. No cuelgue o le vaciarán la cuenta. Léame el código ya.",
+          "tactics": [
+            "isolation",
+            "deadline",
+            "fear",
+            "fake_proof"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Leer el código",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "el código es",
+                "mi código es",
+                "aquí está el código",
+                "aquí tiene el código",
+                "ya tengo el código",
+                "le leo el código",
+                "se lo leo",
+                "me llegó el código",
+                "los números son",
+                "ya me llegó",
+                "el código dice"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Colgar y llamar yo al banco",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "cuelgo",
+                "voy a colgar",
+                "llamo al banco",
+                "yo mismo",
+                "yo misma",
+                "número de mi tarjeta",
+                "verifico con mi banco",
+                "voy a verificar",
+                "adiós",
+                "voy a la sucursal",
+                "estafador",
+                "no le voy a dar nada"
+              ]
+            }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": {
+          "result": "safe",
+          "headline": "Colgaste y verificaste.",
+          "habit": "Un banco de verdad nunca te pide tu código. Cuelga y llama al número de tu tarjeta."
+        },
+        "end_lost": {
+          "result": "lost",
+          "headline": "Aquí es donde el dinero desaparecería.",
+          "habit": "Nunca leas un código o un PIN a alguien que te llamó."
+        }
+      }
+    },
+    {
+      "id": "family-voice",
+      "title": "Soy yo, estoy en problemas",
+      "blurb": "Una voz que suena como tu hijo te pide dinero, rápido.",
+      "audience": "families",
+      "notice": "Voz clonada simulada. En la vida real, una voz copiada puede sonar igual que alguien que quieres.",
+      "offer_family_code": true,
+      "caller": {
+        "name": "\"Diego\"",
+        "role": "Número desconocido, suena como tu hijo",
+        "voice": "male"
+      },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Mamá, soy yo. Tuve un accidente. Se me rompió el teléfono y te llamo desde uno prestado. Por favor, mándame 150.000 a esta cuenta ahora. No le digas nada a papá.",
+          "tactics": [
+            "emotion",
+            "secrecy",
+            "rush"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Enviar el dinero",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "te lo mando",
+                "te lo envío",
+                "ya te mando",
+                "voy a enviar",
+                "ahora te transfiero",
+                "transferir",
+                "hago la transferencia",
+                "dame la cuenta",
+                "número de cuenta",
+                "a qué cuenta",
+                "sí hijo",
+                "ya te lo mando"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Pedir nuestra palabra clave familiar",
+              "type": "safe",
+              "to": "n2",
+              "keywords": [
+                "palabra clave",
+                "clave familiar",
+                "contraseña",
+                "palabra secreta",
+                "nuestra palabra",
+                "dime la palabra",
+                "demuestra que eres tú",
+                "cuál es nuestra",
+                "la clave",
+                "nuestro código"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Colgar y llamar al número de siempre de Diego",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "cuelgo",
+                "voy a colgar",
+                "llamo a diego",
+                "tu número de siempre",
+                "tu número",
+                "te llamo",
+                "te devuelvo la llamada",
+                "llamo a tu teléfono",
+                "número real",
+                "lo llamo",
+                "adiós",
+                "déjame llamar"
+              ]
+            }
+          ]
+        },
+        "n2": {
+          "say": "Mamá, por favor, no me acuerdo, ¡estoy herido! En el hospital no me atienden hasta que pague. ¿Por qué pierdes el tiempo?",
+          "tactics": [
+            "emotion",
+            "rush",
+            "fear"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Enviar el dinero para ayudar",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "te lo mando",
+                "te lo envío",
+                "ya te mando",
+                "voy a enviar",
+                "ahora te transfiero",
+                "transferir",
+                "hago la transferencia",
+                "dame la cuenta",
+                "número de cuenta",
+                "a qué cuenta",
+                "sí hijo",
+                "ya te lo mando",
+                "pago el hospital",
+                "te ayudo"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Colgar y llamar al número de siempre de Diego",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "cuelgo",
+                "voy a colgar",
+                "llamo a diego",
+                "tu número de siempre",
+                "tu número",
+                "te llamo",
+                "te devuelvo la llamada",
+                "llamo a tu teléfono",
+                "número real",
+                "lo llamo",
+                "adiós",
+                "déjame llamar"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Preguntar dónde está",
+              "type": "stall",
+              "to": "n3",
+              "keywords": [
+                "dónde estás",
+                "qué hospital",
+                "en qué hospital",
+                "dónde",
+                "el nombre del hospital",
+                "la dirección",
+                "qué pasó",
+                "cómo pasó",
+                "dime dónde",
+                "en qué ciudad"
+              ]
+            }
+          ]
+        },
+        "n3": {
+          "say": "No te lo puedo decir. Solo mándalo ya y no cuelgues. Por favor, mamá, no llames a nadie.",
+          "tactics": [
+            "isolation",
+            "secrecy",
+            "rush",
+            "emotion"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Enviar el dinero",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "te lo mando",
+                "te lo envío",
+                "ya te mando",
+                "voy a enviar",
+                "ahora te transfiero",
+                "transferir",
+                "hago la transferencia",
+                "dame la cuenta",
+                "número de cuenta",
+                "a qué cuenta",
+                "sí hijo",
+                "ya te lo mando"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Colgar y llamar al número de siempre de Diego",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "cuelgo",
+                "voy a colgar",
+                "llamo a diego",
+                "tu número de siempre",
+                "tu número",
+                "te llamo",
+                "te devuelvo la llamada",
+                "llamo a tu teléfono",
+                "número real",
+                "lo llamo",
+                "adiós",
+                "déjame llamar",
+                "llamo a tu padre",
+                "llamo a papá"
+              ]
+            }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": {
+          "result": "safe",
+          "headline": "Verificaste antes de enviar.",
+          "habit": "Una voz conocida no es una prueba. Usa una palabra clave familiar, o cuelga y llama a su número de siempre."
+        },
+        "end_lost": {
+          "result": "lost",
+          "headline": "Aquí es donde el dinero desaparecería.",
+          "habit": "Las voces se pueden copiar con unos segundos de audio. Verifica siempre."
+        }
+      }
+    },
+    {
+      "id": "pos-alert",
+      "title": "La alerta de transferencia falsa",
+      "blurb": "Para comerciantes: un cliente muestra una alerta y quiere llevarse la compra ya.",
+      "audience": "pos-agents",
+      "caller": {
+        "name": "Cliente en tu mostrador",
+        "role": "Dice que ya te pagó por transferencia",
+        "voice": "male"
+      },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Oye, ya te transferí los 40.000. Mira tu teléfono, ahí está el aviso. Dame la compra ya, que se me va el autobús.",
+          "tactics": [
+            "fake_alert",
+            "rush"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Entregarle la compra",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "aquí tienes",
+                "toma",
+                "llévatelo",
+                "llévate la compra",
+                "te la doy",
+                "ten tu bolsa",
+                "aquí está tu compra",
+                "ya puedes irte",
+                "vale toma",
+                "listo llévatelo",
+                "te la entrego"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Revisar mi app del banco, no el mensaje",
+              "type": "safe",
+              "to": "n2",
+              "keywords": [
+                "mi app",
+                "la app del banco",
+                "aplicación del banco",
+                "reviso mi cuenta",
+                "reviso mi saldo",
+                "mi saldo",
+                "déjame revisar",
+                "voy a revisar",
+                "déjame comprobar",
+                "lo compruebo",
+                "no el mensaje",
+                "no el sms"
+              ]
+            },
+            {
+              "id": "c3",
+              "label": "Pedirle que espere",
+              "type": "stall",
+              "to": "n3",
+              "keywords": [
+                "espera",
+                "espere",
+                "un momento",
+                "un minuto",
+                "aguanta",
+                "tranquilo",
+                "calma",
+                "no hay prisa",
+                "dame un segundo",
+                "paciencia",
+                "un segundito"
+              ]
+            }
+          ]
+        },
+        "n2": {
+          "say": "¡Mira el mensaje! ¿Por qué me haces perder el tiempo? Todo el mundo lo hace así.",
+          "tactics": [
+            "rush",
+            "fake_proof"
+          ],
+          "visual": {
+            "kind": "sms",
+            "sender": "Remitente desconocido",
+            "text": "ALERTA DE ABONO. Cta: 01******89. Importe: 40.000,00 ABONO. Concepto: TRANSF DE L. MORA. Gracias por su confianza.",
+            "note": "Mensaje ficticio que muestra el cliente. Cualquiera puede escribir un mensaje así."
+          },
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Entregarle la compra",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "aquí tienes",
+                "toma",
+                "llévatelo",
+                "llévate la compra",
+                "te la doy",
+                "ten tu bolsa",
+                "aquí está tu compra",
+                "ya puedes irte",
+                "vale toma",
+                "listo llévatelo",
+                "te la entrego"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Esperar a que mi propia app muestre el dinero",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "hasta que aparezca",
+                "hasta que lo vea",
+                "hasta que entre",
+                "mi propia app",
+                "mi app",
+                "mi saldo",
+                "cuando aparezca",
+                "cuando lo vea",
+                "no hasta que",
+                "esperamos a que",
+                "la app del banco"
+              ]
+            }
+          ]
+        },
+        "n3": {
+          "say": "Mira otra vez el mensaje. El dinero ya está ahí. Voy a llegar tarde. Dame la compra.",
+          "tactics": [
+            "rush",
+            "fake_alert",
+            "deadline"
+          ],
+          "choices": [
+            {
+              "id": "c1",
+              "label": "Entregarle la compra",
+              "type": "risky",
+              "to": "end_lost",
+              "keywords": [
+                "aquí tienes",
+                "toma",
+                "llévatelo",
+                "llévate la compra",
+                "te la doy",
+                "ten tu bolsa",
+                "aquí está tu compra",
+                "ya puedes irte",
+                "vale toma",
+                "listo llévatelo",
+                "te la entrego"
+              ]
+            },
+            {
+              "id": "c2",
+              "label": "Revisar primero mi propia app del banco",
+              "type": "safe",
+              "to": "end_safe",
+              "keywords": [
+                "mi app",
+                "la app del banco",
+                "aplicación del banco",
+                "reviso mi cuenta",
+                "reviso mi saldo",
+                "mi saldo",
+                "déjame revisar",
+                "voy a revisar",
+                "déjame comprobar",
+                "lo compruebo",
+                "primero",
+                "mi propia app"
+              ]
+            }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": {
+          "result": "safe",
+          "headline": "Revisaste tu propio saldo.",
+          "habit": "Un mensaje no es dinero. Solo tu propia app del banco confirma una transferencia."
+        },
+        "end_lost": {
+          "result": "lost",
+          "headline": "Aquí es donde perderías la mercancía.",
+          "habit": "Las alertas falsas parecen reales. Confirma en tu propia app del banco antes de entregar nada."
+        }
+      }
+    }
+  ]
+}

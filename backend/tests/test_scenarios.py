@@ -1,16 +1,23 @@
-"""Validates frontend/data/scenarios.json against the rules in SPEC.md (Sections 6 and 16).
+"""Validates frontend/data/scenarios.<lang>.json and study_items.<lang>.json against SPEC.md
+(Sections 6 and 16) and Addendum A (parity across languages, keyword coverage).
 
 Run with: pytest backend/tests/test_scenarios.py
 """
+import itertools
 import json
 import re
+import unicodedata
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-SCENARIOS_PATH = ROOT / "frontend" / "data" / "scenarios.json"
-STUDY_PATH = ROOT / "frontend" / "data" / "study_items.json"
+DATA_DIR = ROOT / "frontend" / "data"
+LANGS = ["en", "es", "fr"]
+SCENARIO_PATHS = {lang: DATA_DIR / f"scenarios.{lang}.json" for lang in LANGS}
+STUDY_PATHS = {lang: DATA_DIR / f"study_items.{lang}.json" for lang in LANGS}
+MIN_KEYWORDS = 8
+MAX_SAY_WORDS = 45
 
 TACTICS = {
     "authority", "deadline", "fear", "fake_proof", "secrecy",
@@ -32,32 +39,105 @@ BLOCKED_NAMES = [
     "Airtel", "9mobile", "Etisalat", "WhatsApp", "Facebook", "Instagram", "Telegram",
     "Google", "Apple", "CBN", "Central Bank", "NIBSS", "EFCC", "ICPC", "DSS", "NDLEA",
     "Nigeria Police", "NCC", "FIRS", "Interpol", "FBI", "DHL", "Jumia", "Konga",
+    # Spanish- and French-speaking banks, telecoms and agencies.
+    # ("Claro" is left out: it is also everyday Spanish for "of course".)
+    "Santander", "BBVA", "CaixaBank", "Bancolombia", "Banorte", "Movistar", "Telcel",
+    "Guardia Civil", "Policía Nacional", "BNP", "Société Générale", "Crédit Agricole", "Orange",
+    "SFR", "Gendarmerie", "DGCCRF", "Pharos",
 ]
+# Nigeria-specific details stay in the English file only (Addendum A, Section 4).
+NIGERIA_ONLY = ["₦", "BVN", "naira", "abeg", "oga", "POS"]
 
 
-def load():
-    with SCENARIOS_PATH.open(encoding="utf-8") as fh:
+def load(lang):
+    with SCENARIO_PATHS[lang].open(encoding="utf-8") as fh:
         return json.load(fh)
 
 
-DATA = load()
-SCENARIOS = DATA["scenarios"]
-IDS = [s["id"] for s in SCENARIOS]
+ALL = {lang: load(lang) for lang in LANGS}
+CASES = [(lang, s) for lang in LANGS for s in ALL[lang]["scenarios"]]
+CASE_IDS = [f"{lang}-{s['id']}" for lang, s in CASES]
 
 
-def test_top_level_shape():
-    assert DATA["version"] == 1
-    assert set(DATA["tactics_glossary"]) == TACTICS
-    for tid, entry in DATA["tactics_glossary"].items():
+def fold(text, lang):
+    """Mirror of matcher.js normalization (without stop words) for duplicate checks."""
+    text = unicodedata.normalize("NFD", text.lower())
+    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
+    text = re.sub(r"[’'`]", "" if lang == "en" else " ", text)
+    text = re.sub(r"[^\w\s]|_", " ", text)
+    return " ".join(text.split())
+
+
+@pytest.mark.parametrize("lang", LANGS)
+def test_top_level_shape(lang):
+    data = ALL[lang]
+    ids = [s["id"] for s in data["scenarios"]]
+    assert data["version"] == 1
+    assert set(data["tactics_glossary"]) == TACTICS
+    for tid, entry in data["tactics_glossary"].items():
         assert entry["name"] and entry["explanation"] and entry["safer"], tid
-    assert len(SCENARIOS) >= 3
-    assert len(set(IDS)) == len(IDS), "scenario ids must be unique"
+    assert len(ids) >= 3
+    assert len(set(ids)) == len(ids), "scenario ids must be unique"
     for required in ("bank-call", "family-voice", "pos-alert"):
-        assert required in IDS
+        assert required in ids
 
 
-@pytest.mark.parametrize("scenario", SCENARIOS, ids=IDS)
-def test_scenario_metadata(scenario):
+def structure(data):
+    """Everything that must be identical across languages."""
+    return [
+        {
+            "id": s["id"],
+            "start": s["start"],
+            "voice": s["caller"]["voice"],
+            "flags": sorted(k for k in s if k in ("notice", "offer_family_code")),
+            "nodes": {
+                nid: {
+                    "tactics": n["tactics"],
+                    "visual": "visual" in n,
+                    "choices": [(c["id"], c["type"], c["to"]) for c in n["choices"]],
+                }
+                for nid, n in s["nodes"].items()
+            },
+            "ends": {eid: e["result"] for eid, e in s["ends"].items()},
+        }
+        for s in data["scenarios"]
+    ]
+
+
+@pytest.mark.parametrize("a, b", list(itertools.combinations(LANGS, 2)))
+def test_parity_across_languages(a, b):
+    assert structure(ALL[a]) == structure(ALL[b])
+    assert set(ALL[a]["tactics_glossary"]) == set(ALL[b]["tactics_glossary"])
+
+
+@pytest.mark.parametrize("lang, scenario", CASES, ids=CASE_IDS)
+def test_keyword_coverage(lang, scenario):
+    for nid, node in scenario["nodes"].items():
+        owner = {}
+        for c in node["choices"]:
+            folded = {fold(k, lang) for k in c["keywords"]}
+            assert len(folded) >= MIN_KEYWORDS, f"{lang}/{scenario['id']}/{nid}/{c['id']}: {len(folded)} keywords"
+            for k in folded:
+                assert k not in owner, f"{lang}/{scenario['id']}/{nid}: '{k}' in {owner.get(k)} and {c['id']}"
+                owner[k] = c["id"]
+
+
+@pytest.mark.parametrize("lang, scenario", CASES, ids=CASE_IDS)
+def test_lines_stay_short(lang, scenario):
+    for nid, node in scenario["nodes"].items():
+        assert len(node["say"].split()) <= MAX_SAY_WORDS, f"{lang}/{scenario['id']}/{nid} is too long"
+
+
+@pytest.mark.parametrize("lang", ["es", "fr"])
+def test_nigeria_specific_details_only_in_english(lang):
+    text = "\n".join(_all_text(ALL[lang], skip_ids=True))
+    for term in NIGERIA_ONLY:
+        assert not re.search(r"(?<![\w])" + re.escape(term) + r"(?![\w])", text, flags=re.IGNORECASE), term
+    assert "Kestrel Bank" in text
+
+
+@pytest.mark.parametrize("lang, scenario", CASES, ids=CASE_IDS)
+def test_scenario_metadata(lang, scenario):
     for key in ("id", "title", "blurb", "audience", "caller", "start", "nodes", "ends"):
         assert key in scenario, key
     assert scenario["caller"]["name"] and scenario["caller"]["role"]
@@ -66,8 +146,8 @@ def test_scenario_metadata(scenario):
     assert not set(scenario["nodes"]) & set(scenario["ends"]), "node and end ids must not collide"
 
 
-@pytest.mark.parametrize("scenario", SCENARIOS, ids=IDS)
-def test_nodes_and_choices(scenario):
+@pytest.mark.parametrize("lang, scenario", CASES, ids=CASE_IDS)
+def test_nodes_and_choices(lang, scenario):
     nodes, ends = scenario["nodes"], scenario["ends"]
     for nid, node in nodes.items():
         assert node["say"].strip(), nid
@@ -98,8 +178,8 @@ def test_nodes_and_choices(scenario):
                 assert ends[c["to"]]["result"] == "lost", f"{where}: risky must end lost"
 
 
-@pytest.mark.parametrize("scenario", SCENARIOS, ids=IDS)
-def test_ends(scenario):
+@pytest.mark.parametrize("lang, scenario", CASES, ids=CASE_IDS)
+def test_ends(lang, scenario):
     ends = scenario["ends"]
     assert any(e["result"] == "safe" for e in ends.values())
     assert any(e["result"] == "lost" for e in ends.values())
@@ -109,8 +189,8 @@ def test_ends(scenario):
         assert end["habit"].strip(), eid
 
 
-@pytest.mark.parametrize("scenario", SCENARIOS, ids=IDS)
-def test_reachable_acyclic_and_shallow(scenario):
+@pytest.mark.parametrize("lang, scenario", CASES, ids=CASE_IDS)
+def test_reachable_acyclic_and_shallow(lang, scenario):
     nodes, ends = scenario["nodes"], scenario["ends"]
     seen_nodes, seen_ends = set(), set()
 
@@ -129,8 +209,8 @@ def test_reachable_acyclic_and_shallow(scenario):
     assert seen_ends == set(ends), f"unreachable ends: {set(ends) - seen_ends}"
 
 
-@pytest.mark.parametrize("scenario", SCENARIOS, ids=IDS)
-def test_every_node_has_a_safe_way_out(scenario):
+@pytest.mark.parametrize("lang, scenario", CASES, ids=CASE_IDS)
+def test_every_node_has_a_safe_way_out(lang, scenario):
     """A safe choice that points to a node (the family code word) must still lead to a safe end."""
     nodes, ends = scenario["nodes"], scenario["ends"]
 
@@ -149,18 +229,27 @@ def test_every_node_has_a_safe_way_out(scenario):
         assert can_end_safe(nid), f"{nid}: safe choices never reach a safe end"
 
 
-def _all_text(obj):
+ID_FIELDS = {"id", "to", "start", "type", "tactics", "voice", "result", "audience", "kind"}
+
+
+def _all_text(obj, skip_ids=False):
+    """All strings; with skip_ids, only human-readable fields (not ids like "pos-alert")."""
     if isinstance(obj, str):
         yield obj
     elif isinstance(obj, dict):
-        for v in obj.values():
-            yield from _all_text(v)
+        for k, v in obj.items():
+            if skip_ids and k in ID_FIELDS:
+                continue
+            yield from _all_text(v, skip_ids)
     elif isinstance(obj, list):
         for v in obj:
-            yield from _all_text(v)
+            yield from _all_text(v, skip_ids)
 
 
-@pytest.mark.parametrize("path", [SCENARIOS_PATH, STUDY_PATH], ids=["scenarios", "study_items"])
+ALL_PATHS = list(SCENARIO_PATHS.values()) + list(STUDY_PATHS.values())
+
+
+@pytest.mark.parametrize("path", ALL_PATHS, ids=[p.stem for p in ALL_PATHS])
 def test_no_real_brand_names(path):
     data = json.loads(path.read_text(encoding="utf-8"))
     text = "\n".join(_all_text(data))
@@ -169,7 +258,7 @@ def test_no_real_brand_names(path):
         assert not re.search(pattern, text, flags=re.IGNORECASE), f"real name found: {name}"
 
 
-@pytest.mark.parametrize("path", [SCENARIOS_PATH, STUDY_PATH], ids=["scenarios", "study_items"])
+@pytest.mark.parametrize("path", ALL_PATHS, ids=[p.stem for p in ALL_PATHS])
 def test_no_urls_phones_or_emails(path):
     text = "\n".join(_all_text(json.loads(path.read_text(encoding="utf-8"))))
     assert not re.search(r"https?://|www\.", text, flags=re.IGNORECASE)
@@ -177,8 +266,9 @@ def test_no_urls_phones_or_emails(path):
     assert not re.search(r"\+?\d[\d\s-]{9,}\d", text), "looks like a phone number"
 
 
-def test_study_items():
-    data = json.loads(STUDY_PATH.read_text(encoding="utf-8"))
+@pytest.mark.parametrize("lang", LANGS)
+def test_study_items(lang):
+    data = json.loads(STUDY_PATHS[lang].read_text(encoding="utf-8"))
     assert data["correct"] == "verify"
     items = data["items"]
     for set_id in ("A", "B"):
@@ -189,3 +279,14 @@ def test_study_items():
             assert item["text"].strip()
             assert sorted(o["id"] for o in item["options"]) == ["comply", "verify"]
             assert all(o["label"].strip() for o in item["options"])
+
+
+@pytest.mark.parametrize("lang", ["es", "fr"])
+def test_study_items_parity(lang):
+    en = json.loads(STUDY_PATHS["en"].read_text(encoding="utf-8"))
+    other = json.loads(STUDY_PATHS[lang].read_text(encoding="utf-8"))
+    shape = lambda d: [(i["id"], i["set"], [o["id"] for o in i["options"]]) for i in d["items"]]
+    assert shape(en) == shape(other)
+    assert other["correct"] == en["correct"]
+    for a, b in zip(en["items"], other["items"]):
+        assert a["text"] != b["text"], f"{lang}/{a['id']} is not translated"
