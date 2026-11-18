@@ -1,0 +1,155 @@
+{
+  "voice": {
+    "engine": "Kokoro (kokoro-onnx v1.0, open-source text-to-speech)",
+    "voice": "bf_emma",
+    "lang": "en-gb",
+    "speed": 0.76
+  },
+  "deployed_url": "https://scam-gym.onrender.com",
+  "repo_url": "https://github.com/HenryTech12/scam-gym",
+  "lower_third": "Built from reported cases: fake bank-agent calls, cloned voices, fake transfer alerts.",
+  "sentence_pause": 0.55,
+  "lead_in": 0.3,
+  "tail": 0.4,
+  "scenes": [
+    {
+      "id": "S1",
+      "title": "1. The call",
+      "kind": "card+app",
+      "target": 18,
+      "sentences": [
+        "Your phone rings.",
+        "A man from your bank says your account will be blocked in one hour, unless you read him a code.",
+        "People lose their savings to calls like this.",
+        "Knowing the advice is not the same as practicing it.",
+        "This is Scam Gym."
+      ],
+      "pauses": {
+        "0": 0.8
+      }
+    },
+    {
+      "id": "S2",
+      "title": "2. Going wrong",
+      "kind": "app",
+      "target": 24,
+      "sentences": [
+        "This is the bank call.",
+        "He sounds official, sets a deadline, and tries to scare me.",
+        "I'm busy and worried, so I give my date of birth.",
+        "Then he asks for the code, and I read it out.",
+        "And this is where the money would be gone."
+      ],
+      "pauses": {
+        "0": 1.0,
+        "1": 1.2,
+        "2": 1.2,
+        "3": 1.2
+      }
+    },
+    {
+      "id": "S3",
+      "title": "3. The debrief",
+      "kind": "app",
+      "target": 18,
+      "sentences": [
+        "Then the part that matters.",
+        "Scam Gym walks back through the call and names each pressure tactic: fake authority, a deadline, fear, fake proof.",
+        "Each one comes with a plain explanation, and the safer reply that was there all along."
+      ],
+      "pauses": {
+        "0": 0.6,
+        "1": 0.7
+      }
+    },
+    {
+      "id": "S4",
+      "title": "4. Same call, handled well",
+      "kind": "app",
+      "target": 14,
+      "sentences": [
+        "Same call, handled well.",
+        "I hang up and call the number on my card.",
+        "Safe exit, and one habit to keep: a real bank never asks for your code."
+      ],
+      "pauses": {
+        "0": 0.8,
+        "1": 0.8
+      }
+    },
+    {
+      "id": "S5",
+      "title": "5. The seller drill",
+      "kind": "app",
+      "target": 16,
+      "sentences": [
+        "Shop owners and POS agents are targeted with fake transfer alerts.",
+        "In this drill, a customer rushes me with an alert message.",
+        "I check my own banking app, not the message.",
+        "A message is not money."
+      ],
+      "tts": {
+        "0": "Shop owners and P O S agents are targeted with fake transfer alerts."
+      },
+      "pauses": {
+        "0": 0.6,
+        "1": 0.8,
+        "2": 0.9
+      }
+    },
+    {
+      "id": "S6",
+      "title": "6. Languages and family code",
+      "kind": "app",
+      "target": 18,
+      "sentences": [
+        "It runs in English, Spanish and French, by voice or by tapping, and keeps working offline.",
+        "For the cloned-voice call, it helps a family choose a code word, with a message ready to share."
+      ],
+      "pauses": {
+        "0": 1.2
+      }
+    },
+    {
+      "id": "S7",
+      "title": "7. Evidence",
+      "kind": "app",
+      "target": 16,
+      "flag": "with-study",
+      "sentences": [
+        "We tested it with {n} volunteers.",
+        "Before playing, {pre} percent chose to verify.",
+        "After two drills, {post} percent did.",
+        "It is a small, self-reported sample.",
+        "It shows promise, not proof."
+      ]
+    },
+    {
+      "id": "S8",
+      "title": "8. Honest limits",
+      "kind": "app",
+      "target": 18,
+      "sentences": [
+        "Everything is fictional.",
+        "There are no accounts, nothing is stored, and voice is optional.",
+        "One honest limitation: Scam Gym builds a habit under simulated pressure.",
+        "A real caller with a spoofed number may still sound more convincing than any drill."
+      ],
+      "pauses": {
+        "1": 0.8
+      }
+    },
+    {
+      "id": "S9",
+      "title": "",
+      "kind": "card",
+      "target": 12,
+      "sentences": [
+        "Built between October seventeenth and now, with AI coding assistance from Claude Code.",
+        "Scam Gym.",
+        "Practice the call before the scammer makes it."
+      ],
+      "hold": 1.6
+    }
+  ]
+}

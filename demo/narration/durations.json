@@ -1,0 +1,215 @@
+{
+  "scenes": {
+    "S1": {
+      "duration": 19.799,
+      "segments": [
+        {
+          "text": "Your phone rings.",
+          "start": 0.3,
+          "end": 2.048
+        },
+        {
+          "text": "A man from your bank says your account will be blocked in one hour, unless you read him a code.",
+          "start": 2.848,
+          "end": 9.151
+        },
+        {
+          "text": "People lose their savings to calls like this.",
+          "start": 9.701,
+          "end": 13.078
+        },
+        {
+          "text": "Knowing the advice is not the same as practicing it.",
+          "start": 13.628,
+          "end": 17.403
+        },
+        {
+          "text": "This is Scam Gym.",
+          "start": 17.953,
+          "end": 19.799
+        }
+      ],
+      "source": "synthetic",
+      "target": 18,
+      "wpm": 158
+    },
+    "S2": {
+      "duration": 20.682,
+      "segments": [
+        {
+          "text": "This is the bank call.",
+          "start": 0.3,
+          "end": 2.297
+        },
+        {
+          "text": "He sounds official, sets a deadline, and tries to scare me.",
+          "start": 3.297,
+          "end": 7.57
+        },
+        {
+          "text": "I'm busy and worried, so I give my date of birth.",
+          "start": 8.77,
+          "end": 12.453
+        },
+        {
+          "text": "Then he asks for the code, and I read it out.",
+          "start": 13.653,
+          "end": 16.799
+        },
+        {
+          "text": "And this is where the money would be gone.",
+          "start": 17.999,
+          "end": 20.682
+        }
+      ],
+      "source": "synthetic",
+      "target": 24,
+      "wpm": 179
+    },
+    "S3": {
+      "duration": 19.193,
+      "segments": [
+        {
+          "text": "Then the part that matters.",
+          "start": 0.3,
+          "end": 2.458
+        },
+        {
+          "text": "Scam Gym walks back through the call and names each pressure tactic: fake authority, a deadline, fear, fake proof.",
+          "start": 3.058,
+          "end": 11.992
+        },
+        {
+          "text": "Each one comes with a plain explanation, and the safer reply that was there all along.",
+          "start": 12.692,
+          "end": 19.193
+        }
+      ],
+      "source": "synthetic",
+      "target": 18,
+      "wpm": 136
+    },
+    "S4": {
+      "duration": 13.156,
+      "segments": [
+        {
+          "text": "Same call, handled well.",
+          "start": 0.3,
+          "end": 2.609
+        },
+        {
+          "text": "I hang up and call the number on my card.",
+          "start": 3.409,
+          "end": 6.469
+        },
+        {
+          "text": "Safe exit, and one habit to keep: a real bank never asks for your code.",
+          "start": 7.269,
+          "end": 13.156
+        }
+      ],
+      "source": "synthetic",
+      "target": 14,
+      "wpm": 155
+    },
+    "S5": {
+      "duration": 17.881,
+      "segments": [
+        {
+          "text": "Shop owners and POS agents are targeted with fake transfer alerts.",
+          "start": 0.3,
+          "end": 5.944
+        },
+        {
+          "text": "In this drill, a customer rushes me with an alert message.",
+          "start": 6.544,
+          "end": 10.783
+        },
+        {
+          "text": "I check my own banking app, not the message.",
+          "start": 11.583,
+          "end": 14.864
+        },
+        {
+          "text": "A message is not money.",
+          "start": 15.764,
+          "end": 17.881
+        }
+      ],
+      "source": "synthetic",
+      "target": 16,
+      "wpm": 141
+    },
+    "S6": {
+      "duration": 15.031,
+      "segments": [
+        {
+          "text": "It runs in English, Spanish and French, by voice or by tapping, and keeps working offline.",
+          "start": 0.3,
+          "end": 6.864
+        },
+        {
+          "text": "For the cloned-voice call, it helps a family choose a code word, with a message ready to share.",
+          "start": 8.065,
+          "end": 15.031
+        }
+      ],
+      "source": "synthetic",
+      "target": 18,
+      "wpm": 151
+    },
+    "S8": {
+      "duration": 20.744,
+      "segments": [
+        {
+          "text": "Everything is fictional.",
+          "start": 0.3,
+          "end": 2.307
+        },
+        {
+          "text": "There are no accounts, nothing is stored, and voice is optional.",
+          "start": 2.857,
+          "end": 7.159
+        },
+        {
+          "text": "One honest limitation: Scam Gym builds a habit under simulated pressure.",
+          "start": 7.959,
+          "end": 14.186
+        },
+        {
+          "text": "A real caller with a spoofed number may still sound more convincing than any drill.",
+          "start": 14.736,
+          "end": 20.744
+        }
+      ],
+      "source": "synthetic",
+      "target": 18,
+      "wpm": 129
+    },
+    "S9": {
+      "duration": 12.656,
+      "segments": [
+        {
+          "text": "Built between October seventeenth and now, with AI coding assistance from Claude Code.",
+          "start": 0.3,
+          "end": 7.092
+        },
+        {
+          "text": "Scam Gym.",
+          "start": 7.642,
+          "end": 9.025
+        },
+        {
+          "text": "Practice the call before the scammer makes it.",
+          "start": 9.575,
+          "end": 12.656
+        }
+      ],
+      "source": "synthetic",
+      "target": 12,
+      "wpm": 123
+    }
+  },
+  "with_study": false,
+  "voice": "Kokoro (kokoro-onnx v1.0, open-source text-to-speech)"
+}

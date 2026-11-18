@@ -1,0 +1,44 @@
+[S1] 1. The call (target 18 s)
+Your phone rings.
+A man from your bank says your account will be blocked in one hour, unless you read him a code.
+People lose their savings to calls like this.
+Knowing the advice is not the same as practicing it.
+This is Scam Gym.
+
+[S2] 2. Going wrong (target 24 s)
+This is the bank call.
+He sounds official, sets a deadline, and tries to scare me.
+I'm busy and worried, so I give my date of birth.
+Then he asks for the code, and I read it out.
+And this is where the money would be gone.
+
+[S3] 3. The debrief (target 18 s)
+Then the part that matters.
+Scam Gym walks back through the call and names each pressure tactic: fake authority, a deadline, fear, fake proof.
+Each one comes with a plain explanation, and the safer reply that was there all along.
+
+[S4] 4. Same call, handled well (target 14 s)
+Same call, handled well.
+I hang up and call the number on my card.
+Safe exit, and one habit to keep: a real bank never asks for your code.
+
+[S5] 5. The seller drill (target 16 s)
+Shop owners and POS agents are targeted with fake transfer alerts.
+In this drill, a customer rushes me with an alert message.
+I check my own banking app, not the message.
+A message is not money.
+
+[S6] 6. Languages and family code (target 18 s)
+It runs in English, Spanish and French, by voice or by tapping, and keeps working offline.
+For the cloned-voice call, it helps a family choose a code word, with a message ready to share.
+
+[S8] 8. Honest limits (target 18 s)
+Everything is fictional.
+There are no accounts, nothing is stored, and voice is optional.
+One honest limitation: Scam Gym builds a habit under simulated pressure.
+A real caller with a spoofed number may still sound more convincing than any drill.
+
+[S9] Close (target 12 s)
+Built between October seventeenth and now, with AI coding assistance from Claude Code.
+Scam Gym.
+Practice the call before the scammer makes it.

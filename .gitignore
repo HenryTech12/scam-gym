@@ -6,3 +6,9 @@ __pycache__/
 *.db
 *.db-journal
 study_export.csv
+# Demo video intermediates (rebuilt by demo/record.mjs and demo/compose.py)
+demo/out/clips/
+demo/out/build/
+demo/out/tmp/
+demo/out/frames/
+demo/.models/

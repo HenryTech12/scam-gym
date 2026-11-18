@@ -1,0 +1,9 @@
+Scam Gym demo video: credits
+
+Voiceover generated with Kokoro (kokoro-onnx v1.0, open-source text-to-speech), voice "bf_emma".
+App recorded live from Scam Gym with Playwright and Chromium.
+Video composed with FFmpeg; captions and titles set in Inter.
+No music is used.
+
+Scam Gym was built Oct 17 to Nov 22, 2026 with AI coding assistance (Claude Code).
+All people, banks and amounts shown are fictional.
