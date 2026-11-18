@@ -1,0 +1,151 @@
+1
+00:00:00,300 --> 00:00:02,648
+Your phone rings.
+
+2
+00:00:02,848 --> 00:00:07,260
+A man from your bank says your account will be blocked in one hour,
+
+3
+00:00:07,260 --> 00:00:09,701
+unless you read him a code.
+
+4
+00:00:09,701 --> 00:00:13,628
+People lose their savings to calls like this.
+
+5
+00:00:13,628 --> 00:00:17,953
+Knowing the advice is not the same as practicing it.
+
+6
+00:00:17,953 --> 00:00:20,199
+This is Scam Gym.
+
+7
+00:00:20,499 --> 00:00:23,096
+This is the bank call.
+
+8
+00:00:23,496 --> 00:00:28,369
+He sounds official, sets a deadline, and tries to scare me.
+
+9
+00:00:28,969 --> 00:00:33,252
+I'm busy and worried, so I give my date of birth.
+
+10
+00:00:33,852 --> 00:00:37,598
+Then he asks for the code, and I read it out.
+
+11
+00:00:38,198 --> 00:00:41,281
+And this is where the money would be gone.
+
+12
+00:00:41,581 --> 00:00:44,339
+Then the part that matters.
+
+13
+00:00:44,339 --> 00:00:49,982
+Scam Gym walks back through the call and names each pressure tactic:
+
+14
+00:00:49,982 --> 00:00:53,873
+fake authority, a deadline, fear, fake proof.
+
+15
+00:00:53,973 --> 00:00:56,817
+Each one comes with a plain explanation,
+
+16
+00:00:56,817 --> 00:01:00,874
+and the safer reply that was there all along.
+
+17
+00:01:01,174 --> 00:01:04,083
+Same call, handled well.
+
+18
+00:01:04,283 --> 00:01:07,943
+I hang up and call the number on my card.
+
+19
+00:01:08,143 --> 00:01:10,890
+Safe exit, and one habit to keep:
+
+20
+00:01:10,890 --> 00:01:14,430
+a real bank never asks for your code.
+
+21
+00:01:14,730 --> 00:01:20,974
+Shop owners and POS agents are targeted with fake transfer alerts.
+
+22
+00:01:20,974 --> 00:01:25,813
+In this drill, a customer rushes me with an alert message.
+
+23
+00:01:26,013 --> 00:01:29,894
+I check my own banking app, not the message.
+
+24
+00:01:30,194 --> 00:01:32,711
+A message is not money.
+
+25
+00:01:33,011 --> 00:01:35,883
+It runs in English, Spanish and French,
+
+26
+00:01:35,883 --> 00:01:40,175
+by voice or by tapping, and keeps working offline.
+
+27
+00:01:40,776 --> 00:01:45,420
+For the cloned-voice call, it helps a family choose a code word,
+
+28
+00:01:45,420 --> 00:01:48,142
+with a message ready to share.
+
+29
+00:01:48,442 --> 00:01:50,999
+Everything is fictional.
+
+30
+00:01:50,999 --> 00:01:55,901
+There are no accounts, nothing is stored, and voice is optional.
+
+31
+00:01:56,101 --> 00:01:57,799
+One honest limitation:
+
+32
+00:01:57,799 --> 00:02:02,878
+Scam Gym builds a habit under simulated pressure.
+
+33
+00:02:02,878 --> 00:02:06,483
+A real caller with a spoofed number may still
+
+34
+00:02:06,483 --> 00:02:09,286
+sound more convincing than any drill.
+
+35
+00:02:09,586 --> 00:02:12,721
+Built between October seventeenth and now,
+
+36
+00:02:12,721 --> 00:02:16,928
+with AI coding assistance from Claude Code.
+
+37
+00:02:16,928 --> 00:02:18,861
+Scam Gym.
+
+38
+00:02:18,861 --> 00:02:22,542
+Practice the call before the scammer makes it.

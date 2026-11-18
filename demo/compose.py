@@ -66,20 +66,32 @@ def chunk_sentence(text):
     """Split a sentence into caption lines of at most 70 characters, preferring commas and colons."""
     if len(text) <= CAPTION_MAX:
         return [text]
-    words, chunks, cur = text.split(), [], ""
-    for w in words:
-        test = f"{cur} {w}".strip()
-        if len(test) > CAPTION_MAX:
-            chunks.append(cur)
-            cur = w
-        else:
-            cur = test
-            if cur.endswith((",", ":", ";")) and len(cur) >= CAPTION_MAX * 0.45:
+    words = text.split()
+    # Two lines that break at a comma or colon read best: take the most balanced such break that fits.
+    breaks = [i for i, w in enumerate(words[:-1], 1) if w.endswith((",", ":", ";"))]
+    fits = [(abs(len(" ".join(words[:i])) - len(" ".join(words[i:]))), i) for i in breaks
+            if len(" ".join(words[:i])) <= CAPTION_MAX and len(" ".join(words[i:])) <= CAPTION_MAX]
+    if fits:
+        i = min(fits)[1]
+        return [" ".join(words[:i]), " ".join(words[i:])]
+    n = -(-len(text) // CAPTION_MAX)  # fewest chunks that fit
+    while True:
+        # Balanced split: aim for equal lengths, and prefer breaking after a comma or colon.
+        target = len(text) / n
+        chunks, cur = [], ""
+        for i, w in enumerate(words):
+            test = f"{cur} {w}".strip()
+            remaining = len(" ".join(words[i:]))
+            if cur and (len(test) > CAPTION_MAX or (len(chunks) < n - 1 and (len(test) > target * 1.15
+                        or (cur.endswith((",", ":", ";")) and len(cur) >= target * 0.6 and remaining <= CAPTION_MAX * (n - len(chunks) - 1))))):
                 chunks.append(cur)
-                cur = ""
-    if cur:
+                cur = w
+            else:
+                cur = test
         chunks.append(cur)
-    return chunks
+        if all(len(c) <= CAPTION_MAX for c in chunks):
+            return chunks
+        n += 1
 
 
 def scene_captions(segments, scene_len):

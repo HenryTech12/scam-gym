@@ -1,0 +1,70 @@
+{
+  "scenes": [
+    {
+      "id": "S1",
+      "title": "1. The call",
+      "start": 0.0,
+      "length": 20.199,
+      "audio": 19.799,
+      "video": 20.199
+    },
+    {
+      "id": "S2",
+      "title": "2. Going wrong",
+      "start": 20.199,
+      "length": 21.082,
+      "audio": 20.682,
+      "video": 21.082
+    },
+    {
+      "id": "S3",
+      "title": "3. The debrief",
+      "start": 41.281,
+      "length": 19.593,
+      "audio": 19.193,
+      "video": 19.593
+    },
+    {
+      "id": "S4",
+      "title": "4. Same call, handled well",
+      "start": 60.874,
+      "length": 13.556,
+      "audio": 13.156,
+      "video": 13.556
+    },
+    {
+      "id": "S5",
+      "title": "5. The seller drill",
+      "start": 74.43,
+      "length": 18.281,
+      "audio": 17.881,
+      "video": 18.281
+    },
+    {
+      "id": "S6",
+      "title": "6. Languages and family code",
+      "start": 92.711,
+      "length": 15.431,
+      "audio": 15.031,
+      "video": 15.431
+    },
+    {
+      "id": "S8",
+      "title": "7. Honest limits",
+      "start": 108.142,
+      "length": 21.144,
+      "audio": 20.744,
+      "video": 21.144
+    },
+    {
+      "id": "S9",
+      "title": "",
+      "start": 129.286,
+      "length": 14.656,
+      "audio": 12.656,
+      "video": 14.666667
+    }
+  ],
+  "voice": "Kokoro (kokoro-onnx v1.0, open-source text-to-speech)",
+  "total": 143.942
+}
