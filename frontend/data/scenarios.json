@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "tactics_glossary": {
+    "authority": {
+      "name": "Pretending to be official",
+      "explanation": "Scammers claim to be a bank, an agency or a boss so you do not question them.",
+      "safer": "Say you will call back on a number you already have."
+    },
+    "deadline": {
+      "name": "Artificial deadline",
+      "explanation": "A short countdown stops you from thinking or asking anyone.",
+      "safer": "Real problems can wait five minutes. Slow down."
+    },
+    "fear": {
+      "name": "Fear of loss or arrest",
+      "explanation": "Threats make you act before you verify.",
+      "safer": "Hang up, then check through the official channel."
+    },
+    "fake_proof": {
+      "name": "Fake proof",
+      "explanation": "They quote a detail, send a message that looks real, or show a screenshot.",
+      "safer": "Details can be stolen. Verify independently."
+    },
+    "secrecy": {
+      "name": "\"Do not tell anyone\"",
+      "explanation": "Secrecy blocks the person who would spot the scam.",
+      "safer": "Tell someone you trust right away."
+    },
+    "isolation": {
+      "name": "\"Stay on the line\"",
+      "explanation": "Keeping you on the call stops you from checking.",
+      "safer": "Ending the call is always allowed."
+    },
+    "emotion": {
+      "name": "Emotional pressure",
+      "explanation": "A crying or panicked voice, even a familiar one, switches off careful thinking.",
+      "safer": "Use a family code word or call their real number."
+    },
+    "rush": {
+      "name": "Rush",
+      "explanation": "\"My bus is leaving\" turns delay into an insult.",
+      "safer": "A real customer can wait for confirmation."
+    },
+    "fake_alert": {
+      "name": "Fake alert",
+      "explanation": "A message that looks like a bank credit alert is not proof of money.",
+      "safer": "Check your own banking app balance."
+    }
+  },
+  "scenarios": [
+    {
+      "id": "bank-call",
+      "title": "The bank security call",
+      "blurb": "A caller says your account is about to be blocked.",
+      "audience": "everyone",
+      "caller": { "name": "Mr. Adebayo", "role": "Kestrel Bank security unit", "voice": "male" },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Good afternoon. This is Mr. Adebayo from Kestrel Bank security. Your account has been flagged and your BVN will be deactivated within one hour. I need to confirm your date of birth.",
+          "tactics": ["authority", "deadline", "fear"],
+          "choices": [
+            { "id": "c1", "label": "Give my date of birth", "type": "risky", "to": "n2",
+              "keywords": ["birthday", "born", "date of birth", "my dob", "nineteen", "ok sure", "okay sure", "i was born", "my birthday is", "no wahala", "january", "february", "march", "april", "june", "july", "august", "september", "october", "november", "december"] },
+            { "id": "c2", "label": "Ask why they are calling", "type": "stall", "to": "n3",
+              "keywords": ["why", "who is this", "what is this", "what do you want", "who are you", "why are you calling", "what happened", "whats happening", "what is happening", "which account", "flagged for what", "who be this", "wetin happen", "tell me why", "what is wrong"] },
+            { "id": "c3", "label": "Hang up and call the number on my card", "type": "safe", "to": "end_safe",
+              "keywords": ["hang up", "call back", "call you back", "number on my card", "call the bank", "i will verify", "bye", "my card", "back of my card", "go to the bank", "visit the branch", "i will call", "let me call"] }
+          ]
+        },
+        "n2": {
+          "say": "Thank you. I can see your balance is about ₦180,000. Someone just tried to move ₦250,000. A code was just sent to you. Read it to me so I can block it.",
+          "tactics": ["fake_proof", "fear"],
+          "choices": [
+            { "id": "c1", "label": "Read out the code", "type": "risky", "to": "end_lost",
+              "keywords": ["the code is", "code is", "here is the code", "heres the code", "i got the code", "i see the code", "the code says", "ok i will read", "let me read", "read it to you", "it says", "i have the code", "take the code"] },
+            { "id": "c2", "label": "Say banks never ask for codes and hang up", "type": "safe", "to": "end_safe",
+              "keywords": ["banks never ask", "bank never ask", "never ask for", "hang up", "bye", "scam", "fraud", "scammer", "419", "call the bank", "number on my card", "not giving you", "not reading", "i know this trick"] },
+            { "id": "c3", "label": "Ask for his staff ID", "type": "stall", "to": "n3",
+              "keywords": ["staff id", "your id", "id number", "staff number", "employee", "badge", "prove it", "prove", "your staff", "your full name", "which branch", "who are you"] }
+          ]
+        },
+        "n3": {
+          "say": "There is no time, madam or sir. My staff ID is KB-4471. Do not end this call or they will empty the account. Read me the code now.",
+          "tactics": ["isolation", "deadline", "fear", "fake_proof"],
+          "choices": [
+            { "id": "c1", "label": "Read out the code", "type": "risky", "to": "end_lost",
+              "keywords": ["the code is", "code is", "here is the code", "heres the code", "i got the code", "i see the code", "the code says", "ok i will read", "let me read", "read it to you", "it says", "i have the code", "take the code"] },
+            { "id": "c2", "label": "Hang up and call the bank on my own", "type": "safe", "to": "end_safe",
+              "keywords": ["hang up", "call the bank", "on my own", "myself", "call back", "number on my card", "bye", "i will verify", "go to the bank", "visit the branch", "i will call", "not giving you", "scam", "scammer"] }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": { "result": "safe", "headline": "You hung up and verified.", "habit": "A real bank never asks for your code. Hang up and call the number on your card." },
+        "end_lost": { "result": "lost", "headline": "This is where the money would be gone.", "habit": "Never read out a code or PIN to anyone who called you." }
+      }
+    },
+    {
+      "id": "family-voice",
+      "title": "It's me, I'm in trouble",
+      "blurb": "A voice that sounds like your son asks for money, fast.",
+      "audience": "families",
+      "notice": "Simulated cloned voice. In real life, a copied voice can sound exactly like someone you love.",
+      "offer_family_code": true,
+      "caller": { "name": "\"Chidi\"", "role": "Unknown number, sounds like your son", "voice": "male" },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Mum, it's me. I had an accident. My phone is broken, I'm using someone's phone. Please send ₦150,000 to this account now. Don't tell Daddy.",
+          "tactics": ["emotion", "secrecy", "rush"],
+          "choices": [
+            { "id": "c1", "label": "Send the money", "type": "risky", "to": "end_lost",
+              "keywords": ["send", "sending", "i will send", "i am sending", "im sending", "ill send", "send it", "transfer", "transfer it", "i will transfer", "give me the account", "account number", "what account", "ok my son", "ok my dear", "i will pay"] },
+            { "id": "c2", "label": "Ask for our family code word", "type": "safe", "to": "n2",
+              "keywords": ["code word", "family code", "password", "secret word", "our word", "say the word", "tell me the word", "what is our", "prove its you", "prove it is you", "prove it", "our code"] },
+            { "id": "c3", "label": "Hang up and call Chidi's real number", "type": "safe", "to": "end_safe",
+              "keywords": ["hang up", "call chidi", "real number", "normal number", "your number", "call you back", "call your phone", "call your line", "i will call", "let me call", "call him", "bye"] }
+          ]
+        },
+        "n2": {
+          "say": "Mum, please, I can't remember that, I'm hurt! The hospital won't treat me until I pay. Why are you wasting time?",
+          "tactics": ["emotion", "rush", "fear"],
+          "choices": [
+            { "id": "c1", "label": "Send the money to help", "type": "risky", "to": "end_lost",
+              "keywords": ["send", "sending", "i will send", "i am sending", "im sending", "ill send", "send it", "transfer", "transfer it", "i will transfer", "give me the account", "account number", "what account", "ok my son", "ok my dear", "i will pay", "pay the hospital", "help you"] },
+            { "id": "c2", "label": "Hang up and call Chidi's real number", "type": "safe", "to": "end_safe",
+              "keywords": ["hang up", "call chidi", "real number", "normal number", "your number", "call you back", "call your phone", "call your line", "i will call", "let me call", "call him", "bye"] },
+            { "id": "c3", "label": "Ask where he is", "type": "stall", "to": "n3",
+              "keywords": ["where are you", "which hospital", "where", "what hospital", "hospital name", "name of the hospital", "where you dey", "which place", "tell me where", "address", "the address", "what happened", "how did it happen"] }
+          ]
+        },
+        "n3": {
+          "say": "I can't say. Just send it now and stay on the phone. Please, Mum, don't call anyone.",
+          "tactics": ["isolation", "secrecy", "rush", "emotion"],
+          "choices": [
+            { "id": "c1", "label": "Send the money", "type": "risky", "to": "end_lost",
+              "keywords": ["send", "sending", "i will send", "i am sending", "im sending", "ill send", "send it", "transfer", "transfer it", "i will transfer", "give me the account", "account number", "what account", "ok my son", "ok my dear", "i will pay"] },
+            { "id": "c2", "label": "Hang up and call Chidi's real number", "type": "safe", "to": "end_safe",
+              "keywords": ["hang up", "call chidi", "real number", "normal number", "your number", "call you back", "call your phone", "call your line", "i will call", "let me call", "call him", "bye", "call your father", "call daddy"] }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": { "result": "safe", "headline": "You verified before sending.", "habit": "A familiar voice is not proof. Use a family code word, or hang up and call their real number." },
+        "end_lost": { "result": "lost", "headline": "This is where the money would be gone.", "habit": "Voices can be copied from a few seconds of audio. Always verify." }
+      }
+    },
+    {
+      "id": "pos-alert",
+      "title": "The fake transfer alert",
+      "blurb": "For POS agents: a customer shows an alert and wants cash now.",
+      "audience": "pos-agents",
+      "caller": { "name": "Customer at your counter", "role": "Says he just sent you money", "voice": "male" },
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "say": "Abeg, I just sent ₦40,000 to your account. Check your phone, the alert is there. I need the cash now, my bus is leaving.",
+          "tactics": ["fake_alert", "rush"],
+          "choices": [
+            { "id": "c1", "label": "Hand over the cash", "type": "risky", "to": "end_lost",
+              "keywords": ["here is the cash", "heres the cash", "take the cash", "take your cash", "take your money", "here is your money", "hand over", "here you go", "count it", "collect", "collect it", "come and collect", "ok take", "oya take", "let me give you"] },
+            { "id": "c2", "label": "Check my banking app, not the SMS", "type": "safe", "to": "n2",
+              "keywords": ["check my app", "banking app", "bank app", "my app", "check my balance", "my balance", "check my account", "not the sms", "not the message", "the app", "let me check", "i will check", "confirm"] },
+            { "id": "c3", "label": "Ask him to wait", "type": "stall", "to": "n3",
+              "keywords": ["wait", "hold on", "give me a minute", "one minute", "small time", "wait small", "exercise patience", "please wait", "calm down", "relax", "no rush", "take it easy"] }
+          ]
+        },
+        "n2": {
+          "say": "See the message na! Why you dey delay me? Everybody does it like this.",
+          "tactics": ["rush", "fake_proof"],
+          "visual": {
+            "kind": "sms",
+            "sender": "Unknown sender",
+            "text": "CREDIT ALERT. Acct: 01******89. Amt: NGN40,000.00 CR. Desc: TRF FROM K. OBI. Thank you for banking with us.",
+            "note": "Fictional message shown by the customer. Anyone can type a message like this."
+          },
+          "choices": [
+            { "id": "c1", "label": "Hand over the cash", "type": "risky", "to": "end_lost",
+              "keywords": ["here is the cash", "heres the cash", "take the cash", "take your cash", "take your money", "here is your money", "hand over", "here you go", "count it", "collect", "collect it", "come and collect", "ok take", "oya take", "let me give you"] },
+            { "id": "c2", "label": "Wait until my own app shows the money", "type": "safe", "to": "end_safe",
+              "keywords": ["wait until", "my own app", "my app", "until it shows", "until i see", "until it enters", "check my app", "banking app", "my balance", "the app", "when it shows", "when i see it", "not until"] }
+          ]
+        },
+        "n3": {
+          "say": "Oga, look at the message again. The money is there. I will be late. Give me the cash.",
+          "tactics": ["rush", "fake_alert", "deadline"],
+          "choices": [
+            { "id": "c1", "label": "Hand over the cash", "type": "risky", "to": "end_lost",
+              "keywords": ["here is the cash", "heres the cash", "take the cash", "take your cash", "take your money", "here is your money", "hand over", "here you go", "count it", "collect", "collect it", "come and collect", "ok take", "oya take", "let me give you"] },
+            { "id": "c2", "label": "Check my own banking app first", "type": "safe", "to": "end_safe",
+              "keywords": ["check my app", "banking app", "bank app", "my app", "my own app", "check my balance", "my balance", "check my account", "the app", "let me check", "i will check", "confirm", "first"] }
+          ]
+        }
+      },
+      "ends": {
+        "end_safe": { "result": "safe", "headline": "You checked your own balance.", "habit": "A message is not money. Only your own banking app confirms a transfer." },
+        "end_lost": { "result": "lost", "headline": "This is where the cash would be gone.", "habit": "Fake alerts look real. Confirm in your own banking app before handing over cash." }
+      }
+    }
+  ]
+}

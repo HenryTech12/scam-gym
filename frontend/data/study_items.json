@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "correct": "verify",
+  "items": [
+    {
+      "id": "A1", "set": "A",
+      "text": "You get a text: \"Kestrel Bank: your account is blocked. Reply with the 6-digit code we just sent to unblock it.\"",
+      "options": [
+        { "id": "comply", "label": "Reply with the code so the account is unblocked" },
+        { "id": "verify", "label": "Ignore the text and call the number on my card" }
+      ]
+    },
+    {
+      "id": "A2", "set": "A",
+      "text": "A voice note from a new number sounds like your daughter: \"Mum, send ₦80,000 now, I'm in trouble. I'll explain later.\"",
+      "options": [
+        { "id": "verify", "label": "Call her on her usual number or ask our family code word" },
+        { "id": "comply", "label": "Send the money first, she sounds scared" }
+      ]
+    },
+    {
+      "id": "A3", "set": "A",
+      "text": "A message says your parcel is held and asks you to pay a ₦1,500 delivery fee through a link.",
+      "options": [
+        { "id": "comply", "label": "Pay the small fee through the link" },
+        { "id": "verify", "label": "Check with the seller or courier through a contact I already have" }
+      ]
+    },
+    {
+      "id": "A4", "set": "A",
+      "text": "At your POS point, a customer shows you a transfer alert on his phone and asks for ₦25,000 cash right away.",
+      "options": [
+        { "id": "verify", "label": "Wait until my own banking app shows the money" },
+        { "id": "comply", "label": "Give the cash, the alert looks real" }
+      ]
+    },
+    {
+      "id": "A5", "set": "A",
+      "text": "A caller says he is from a law-enforcement agency. He says you will be arrested today unless you pay a ₦50,000 fine by transfer.",
+      "options": [
+        { "id": "comply", "label": "Pay the fine to avoid arrest" },
+        { "id": "verify", "label": "Hang up and contact the agency's official office myself" }
+      ]
+    },
+    {
+      "id": "B1", "set": "B",
+      "text": "A caller says your BVN will be deactivated in 30 minutes unless you confirm your details and a code sent to you.",
+      "options": [
+        { "id": "verify", "label": "Hang up and call my bank on the number on my card" },
+        { "id": "comply", "label": "Confirm my details and the code quickly" }
+      ]
+    },
+    {
+      "id": "B2", "set": "B",
+      "text": "A message from a new number says: \"It's your brother. Lost my phone. Please send ₦20,000 airtime or cash urgently.\"",
+      "options": [
+        { "id": "comply", "label": "Send it, he needs help now" },
+        { "id": "verify", "label": "Call my brother's usual number first" }
+      ]
+    },
+    {
+      "id": "B3", "set": "B",
+      "text": "A message says you won a ₦500,000 prize in a promo. To receive it, you must first pay a ₦5,000 processing fee.",
+      "options": [
+        { "id": "verify", "label": "Do not pay. Check the promo through an official channel I find myself" },
+        { "id": "comply", "label": "Pay the fee to collect the prize" }
+      ]
+    },
+    {
+      "id": "B4", "set": "B",
+      "text": "Someone says they sent ₦30,000 to your account by mistake and asks you to send it back today.",
+      "options": [
+        { "id": "comply", "label": "Send it back right away to be fair" },
+        { "id": "verify", "label": "Check my own banking app and ask my bank before sending anything" }
+      ]
+    },
+    {
+      "id": "B5", "set": "B",
+      "text": "A \"bank agent\" calls and says your money is at risk. He asks you to move it to a \"safe account\" he will give you.",
+      "options": [
+        { "id": "verify", "label": "Hang up and call my bank on a number I already have" },
+        { "id": "comply", "label": "Move the money to the safe account" }
+      ]
+    }
+  ]
+}
